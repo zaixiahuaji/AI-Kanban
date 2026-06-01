@@ -1,0 +1,80 @@
+{
+  "common": {
+    "appName": "Turbo",
+    "switchLang": "Language"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back to Turbo",
+      "description": "Get access to internal application",
+      "username": "Username",
+      "usernamePlaceholder": "Email address or username",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Sign in",
+      "errorCredentials": "Provided account does not exist.",
+      "footerCta": "Don't have an account?",
+      "footerLink": "Sign up"
+    },
+    "register": {
+      "title": "Create new account in Turbo",
+      "description": "Get access to internal application",
+      "username": "Username",
+      "usernamePlaceholder": "Unique username",
+      "email": "Email",
+      "emailPlaceholder": "Your email address",
+      "password": "Password",
+      "passwordPlaceholder": "Your new password",
+      "passwordRetype": "Retype password",
+      "passwordRetypePlaceholder": "Verify password",
+      "code": "Verification code",
+      "codePlaceholder": "6-digit code",
+      "sendCode": "Send code",
+      "resendCode": "Resend ({seconds}s)",
+      "submit": "Sign up",
+      "footerCta": "Already have an account?",
+      "footerLink": "Sign in",
+      "codeSent": "Verification code sent to your email",
+      "codeSentError": "Failed to send code, please try again"
+    }
+  },
+  "account": {
+    "profile": {
+      "title": "Update your profile information",
+      "description": "Change your account data",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "submit": "Update profile",
+      "success": "Profile has been successfully updated"
+    },
+    "changePassword": {
+      "title": "Set new account password",
+      "description": "Change sign in access password",
+      "password": "Current password",
+      "passwordNew": "New password",
+      "passwordRetype": "Retype password",
+      "submit": "Change password",
+      "success": "Password has been successfully changed"
+    },
+    "deleteAccount": {
+      "title": "Delete your account",
+      "description": "After this action all data will be lost",
+      "username": "Username",
+      "submit": "Delete account"
+    }
+  },
+  "home": {
+    "title": "Turbo - Django & Next.js starter kit",
+    "description": "Turbo is minimal and opinionated starter kit for Django & Next.js projects connected via REST API.",
+    "authenticatedPages": "Authenticated pages",
+    "anonymousPages": "Anonymous pages",
+    "profile": "Profile",
+    "changePassword": "Change password",
+    "deleteAccount": "Delete account",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "session": "Session",
+    "username": "Username"
+  }
+}

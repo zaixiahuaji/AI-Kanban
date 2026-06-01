@@ -1,0 +1,80 @@
+{
+  "common": {
+    "appName": "Turbo",
+    "switchLang": "语言"
+  },
+  "auth": {
+    "login": {
+      "title": "欢迎回来",
+      "description": "登录以访问应用",
+      "username": "用户名",
+      "usernamePlaceholder": "邮箱地址或用户名",
+      "password": "密码",
+      "passwordPlaceholder": "请输入密码",
+      "submit": "登录",
+      "errorCredentials": "账号不存在或密码错误",
+      "footerCta": "还没有账号？",
+      "footerLink": "注册"
+    },
+    "register": {
+      "title": "创建新账号",
+      "description": "注册以访问应用",
+      "username": "用户名",
+      "usernamePlaceholder": "唯一的用户名",
+      "email": "邮箱",
+      "emailPlaceholder": "你的邮箱地址",
+      "password": "密码",
+      "passwordPlaceholder": "你的新密码",
+      "passwordRetype": "确认密码",
+      "passwordRetypePlaceholder": "再次输入密码",
+      "code": "验证码",
+      "codePlaceholder": "6位数字验证码",
+      "sendCode": "发送验证码",
+      "resendCode": "重新发送 ({seconds}s)",
+      "submit": "注册",
+      "footerCta": "已有账号？",
+      "footerLink": "登录",
+      "codeSent": "验证码已发送到你的邮箱",
+      "codeSentError": "验证码发送失败，请重试"
+    }
+  },
+  "account": {
+    "profile": {
+      "title": "更新个人资料",
+      "description": "修改你的账号信息",
+      "firstName": "名",
+      "lastName": "姓",
+      "submit": "更新资料",
+      "success": "个人资料已成功更新"
+    },
+    "changePassword": {
+      "title": "设置新密码",
+      "description": "修改登录密码",
+      "password": "当前密码",
+      "passwordNew": "新密码",
+      "passwordRetype": "确认密码",
+      "submit": "修改密码",
+      "success": "密码已成功修改"
+    },
+    "deleteAccount": {
+      "title": "删除账号",
+      "description": "此操作后所有数据将丢失",
+      "username": "用户名",
+      "submit": "删除账号"
+    }
+  },
+  "home": {
+    "title": "Turbo - Django & Next.js 启动模板",
+    "description": "Turbo 是一个极简的 Django & Next.js 全栈脚手架，通过 REST API 连接。",
+    "authenticatedPages": "已认证页面",
+    "anonymousPages": "未认证页面",
+    "profile": "个人资料",
+    "changePassword": "修改密码",
+    "deleteAccount": "删除账号",
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出登录",
+    "session": "会话状态",
+    "username": "用户名"
+  }
+}
