@@ -27,6 +27,10 @@ export function RegisterForm({
     })
 
   const [countdown, setCountdown] = useState(0)
+  const [sendCodeMessage, setSendCodeMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
   const emailValue = watch('email')
 
   useEffect(() => {
@@ -39,9 +43,13 @@ export function RegisterForm({
     const email = getValues('email')
     if (!email) return
 
+    setSendCodeMessage(null)
     const result = await sendCodeAction(email)
     if (result.success) {
       setCountdown(60)
+      setSendCodeMessage({ type: 'success', text: t('codeSent') })
+    } else {
+      setSendCodeMessage({ type: 'error', text: t('codeSentError') })
     }
   }
 
@@ -98,6 +106,17 @@ export function RegisterForm({
               : t('sendCode')}
           </button>
         </div>
+        {sendCodeMessage && (
+          <p
+            className={`mb-4 text-sm ${
+              sendCodeMessage.type === 'success'
+                ? 'text-green-600'
+                : 'text-red-600'
+            }`}
+          >
+            {sendCodeMessage.text}
+          </p>
+        )}
         <TextField
           type="password"
           register={register('password')}

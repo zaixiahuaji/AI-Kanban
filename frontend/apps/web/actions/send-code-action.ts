@@ -8,7 +8,7 @@ export async function sendCodeAction(
 ): Promise<{ success: boolean; message?: string }> {
   try {
     const apiClient = await getApiClient()
-    await apiClient.email.sendCodeCreate({ email })
+    await apiClient.email.emailSendCodeCreate({ email })
     return { success: true }
   } catch (error) {
     if (error instanceof ApiError) {
