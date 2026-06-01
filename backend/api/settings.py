@@ -116,7 +116,7 @@ LANGUAGE_CODE = "en"
 
 LANGUAGES = [
     ("en", "English"),
-    ("zh-cn", "简体中文"),
+    ("zh-hans", "简体中文"),
 ]
 
 LOCALE_PATHS = [
@@ -156,6 +156,7 @@ REST_FRAMEWORK = {
 UNFOLD = {
     "SITE_HEADER": _("Turbo Admin"),
     "SITE_TITLE": _("Turbo Admin"),
+    "SHOW_LANGUAGES": True,
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
