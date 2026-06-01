@@ -1,0 +1,17 @@
+这是我刚刚遇到并解决的问题，只作记录
+前端依赖安装
+问题：我想运行docker compose exec web pnpm --filter web add next-intl来安装依赖，但web容器因为没有这个依赖而停止了，
+然后尝试本地安装 next-intl 时 pnpm 报 virtual-store-dir-max-length 不一致，因为 Docker 容器内 pnpm 和本地 pnpm 创建的 node_modules 冲突。
+
+解决：删除本地 node_modules 和 .pnpm-store 后重新 pnpm install。
+
+Docker 编排修改
+问题：docker-compose.yaml 把本地 ./frontend 挂载到容器 /app，本地 Windows 的 node_modules 挂到 Linux 容器不兼容，容器内 pnpm install 又因目录长度设置不同报错，且非交互环境无法确认重建。
+
+解决：加了两个匿名卷 /app/node_modules 和 /app/.pnpm-store，让容器使用自己安装的依赖，不受本地干扰：
+
+
+volumes:
+  - ./frontend:/app
+  - /app/node_modules        # 容器独立，不挂载本地
+  - /app/.pnpm-store         # 容器独立，不挂载本地

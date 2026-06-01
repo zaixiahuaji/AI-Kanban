@@ -25,6 +25,5 @@ next-env.d.ts
 .ruff_cache
 .playwright-mcp/
 .vscode/
-docs/
 start-claude.ps1
 CLAUDE.md

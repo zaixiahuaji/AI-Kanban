@@ -103,6 +103,12 @@ class UserCreateSerializer(serializers.ModelSerializer):
         code = attrs.pop("code")
         password_retype = attrs.pop("password_retype")
 
+        # Validate email uniqueness
+        if User.objects.filter(email=attrs["email"]).exists():
+            raise exceptions.ValidationError(
+                {"email": [_("A user with that email already exists.")]}
+            )
+
         # Validate password
         try:
             validate_password(attrs.get("password"))

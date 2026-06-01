@@ -37,6 +37,8 @@ services:
       context: frontend
     volumes:
       - ./frontend:/app
+      - /app/node_modules
+      - /app/.pnpm-store
     expose:
       - "3000"
     ports:
