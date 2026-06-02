@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
 
-from .models import EmailVerification
+from .models import EmailVerification, Tag, Task
 
 User = get_user_model()
 
@@ -179,3 +179,127 @@ class SendCodeSerializer(serializers.Serializer):
             self.fail("daily_limit")
 
         return value
+
+
+######################################################################
+# Tag
+######################################################################
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["id", "name", "color", "created_at"]
+        read_only_fields = ["id", "created_at"]
+
+    def validate_name(self, value):
+        # 检查同一用户下标签名是否重复
+        user = self.context["request"].user
+        qs = Tag.objects.filter(created_by=user, name=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError(_("A tag with this name already exists."))
+        return value
+
+
+class TagBriefSerializer(serializers.ModelSerializer):
+    """任务列表中嵌入的标签摘要"""
+
+    class Meta:
+        model = Tag
+        fields = ["id", "name", "color"]
+
+
+######################################################################
+# Task
+######################################################################
+
+
+class TaskListSerializer(serializers.ModelSerializer):
+    tags = TagBriefSerializer(many=True, read_only=True)
+    priority_display = serializers.CharField(source="get_priority_display", read_only=True)
+    is_overdue = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Task
+        fields = [
+            "id", "title", "status", "priority", "priority_display",
+            "due_date", "is_overdue", "tags", "created_at", "modified_at",
+        ]
+
+    def get_is_overdue(self, obj):
+        if obj.due_date and obj.status != "done":
+            from datetime import date
+            return obj.due_date < date.today()
+        return False
+
+
+class TaskDetailSerializer(TaskListSerializer):
+    description = serializers.CharField(required=False, allow_blank=True, default="")
+
+    class Meta(TaskListSerializer.Meta):
+        fields = TaskListSerializer.Meta.fields + ["description", "created_by"]
+
+
+class TaskCreateSerializer(serializers.ModelSerializer):
+    tags = serializers.ListField(
+        child=serializers.UUIDField(),
+        write_only=True,
+        required=False,
+        default=[],
+    )
+
+    class Meta:
+        model = Task
+        fields = ["title", "description", "status", "priority", "due_date", "tags"]
+
+    def validate_title(self, value):
+        if len(value.strip()) < 1:
+            raise serializers.ValidationError(_("Title cannot be empty."))
+        return value.strip()
+
+    def validate_tags(self, value):
+        user = self.context["request"].user
+        tags = Tag.objects.filter(id__in=value, created_by=user)
+        if len(tags) != len(value):
+            raise serializers.ValidationError(_("Some tags do not exist or do not belong to you."))
+        return tags
+
+    def create(self, validated_data):
+        tags = validated_data.pop("tags", [])
+        validated_data["created_by"] = self.context["request"].user
+        task = Task.objects.create(**validated_data)
+        if tags:
+            task.tags.set(tags)
+        return task
+
+
+class TaskUpdateSerializer(serializers.ModelSerializer):
+    tags = serializers.ListField(
+        child=serializers.UUIDField(),
+        write_only=True,
+        required=False,
+    )
+
+    class Meta:
+        model = Task
+        fields = ["title", "description", "status", "priority", "due_date", "tags"]
+
+    def validate_tags(self, value):
+        if value is None:
+            return value
+        user = self.context["request"].user
+        tags = Tag.objects.filter(id__in=value, created_by=user)
+        if len(tags) != len(value):
+            raise serializers.ValidationError(_("Some tags do not exist or do not belong to you."))
+        return tags
+
+    def update(self, instance, validated_data):
+        tags = validated_data.pop("tags", None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if tags is not None:
+            instance.tags.set(tags)
+        return instance
