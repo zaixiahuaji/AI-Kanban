@@ -18,7 +18,7 @@ export class SchemaService {
      */
     public schemaRetrieve(
         format?: 'json' | 'yaml',
-        lang?: 'en' | 'zh-cn',
+        lang?: 'en' | 'zh-hans',
     ): CancelablePromise<Record<string, any>> {
         return this.httpRequest.request({
             method: 'GET',

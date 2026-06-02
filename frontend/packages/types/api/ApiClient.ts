@@ -7,12 +7,16 @@ import type { OpenAPIConfig } from './core/OpenAPI';
 import { FetchHttpRequest } from './core/FetchHttpRequest';
 import { EmailService } from './services/EmailService';
 import { SchemaService } from './services/SchemaService';
+import { TagsService } from './services/TagsService';
+import { TasksService } from './services/TasksService';
 import { TokenService } from './services/TokenService';
 import { UsersService } from './services/UsersService';
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
 export class ApiClient {
     public readonly email: EmailService;
     public readonly schema: SchemaService;
+    public readonly tags: TagsService;
+    public readonly tasks: TasksService;
     public readonly token: TokenService;
     public readonly users: UsersService;
     public readonly request: BaseHttpRequest;
@@ -30,6 +34,8 @@ export class ApiClient {
         });
         this.email = new EmailService(this.request);
         this.schema = new SchemaService(this.request);
+        this.tags = new TagsService(this.request);
+        this.tasks = new TasksService(this.request);
         this.token = new TokenService(this.request);
         this.users = new UsersService(this.request);
     }

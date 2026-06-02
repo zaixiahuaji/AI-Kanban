@@ -10,8 +10,20 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { PaginatedTagList } from './models/PaginatedTagList';
+export type { PaginatedTaskListList } from './models/PaginatedTaskListList';
+export type { PatchedTag } from './models/PatchedTag';
+export type { PatchedTaskUpdate } from './models/PatchedTaskUpdate';
 export type { PatchedUserCurrent } from './models/PatchedUserCurrent';
+export { PriorityEnum } from './models/PriorityEnum';
 export type { SendCode } from './models/SendCode';
+export { StatusEnum } from './models/StatusEnum';
+export type { Tag } from './models/Tag';
+export type { TagBrief } from './models/TagBrief';
+export type { TaskCreate } from './models/TaskCreate';
+export type { TaskDetail } from './models/TaskDetail';
+export type { TaskList } from './models/TaskList';
+export type { TaskUpdate } from './models/TaskUpdate';
 export type { TokenObtainPair } from './models/TokenObtainPair';
 export type { TokenRefresh } from './models/TokenRefresh';
 export type { UserChangePassword } from './models/UserChangePassword';
@@ -23,5 +35,7 @@ export type { UserCurrentError } from './models/UserCurrentError';
 
 export { EmailService } from './services/EmailService';
 export { SchemaService } from './services/SchemaService';
+export { TagsService } from './services/TagsService';
+export { TasksService } from './services/TasksService';
 export { TokenService } from './services/TokenService';
 export { UsersService } from './services/UsersService';
