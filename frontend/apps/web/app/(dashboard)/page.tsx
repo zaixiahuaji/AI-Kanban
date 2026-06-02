@@ -1,11 +1,15 @@
-import { getTranslations } from 'next-intl/server'
+import { getTasks } from '@/actions/task-actions'
+import { getTags } from '@/actions/tag-actions'
+import { KanbanPageClient } from './kanban-page-client'
 
 export default async function HomePage() {
-  const t = await getTranslations('kanban')
-  return (
-    <div>
-      <h1 className="text-xl font-semibold text-gray-900">{t('title')}</h1>
-      <p className="mt-2 text-gray-500">Loading kanban...</p>
-    </div>
-  )
+  const [tasksResult, tagsResult] = await Promise.all([
+    getTasks(),
+    getTags(),
+  ])
+
+  const tasks = tasksResult.success ? (tasksResult.data?.results || []) : []
+  const tags = tagsResult.success ? (tagsResult.data?.results || []) : []
+
+  return <KanbanPageClient initialTasks={tasks} tags={tags} />
 }
