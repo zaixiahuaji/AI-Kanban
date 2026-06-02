@@ -139,3 +139,112 @@ class UserViewSet(
     def delete_account(self, request, *args, **kwargs):
         self.request.user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+######################################################################
+# Task & Tag
+######################################################################
+from django.utils import timezone
+
+from .models import Tag, Task
+from .permissions import IsOwnerOrAdmin
+from .serializers import (
+    TagSerializer,
+    TaskCreateSerializer,
+    TaskDetailSerializer,
+    TaskListSerializer,
+    TaskUpdateSerializer,
+)
+
+
+class TagViewSet(viewsets.ModelViewSet):
+    serializer_class = TagSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+
+    def get_queryset(self):
+        return Tag.objects.filter(created_by=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class TaskViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+
+    def get_queryset(self):
+        qs = Task.objects.active()
+        if not self.request.user.is_staff:
+            qs = qs.filter(created_by=self.request.user)
+        return qs.select_related("created_by").prefetch_related("tags")
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TaskListSerializer
+        if self.action == "retrieve":
+            return TaskDetailSerializer
+        if self.action == "create":
+            return TaskCreateSerializer
+        if self.action in ("update", "partial_update"):
+            return TaskUpdateSerializer
+        return TaskDetailSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @extend_schema(request=TaskUpdateSerializer, responses={200: TaskDetailSerializer})
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @extend_schema(request=TaskUpdateSerializer, responses={200: TaskDetailSerializer})
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """软删除"""
+        task = self.get_object()
+        task.is_deleted = True
+        task.deleted_at = timezone.now()
+        task.save(update_fields=["is_deleted", "deleted_at"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["post"], url_path="restore")
+    def restore(self, request, *args, **kwargs):
+        """从回收站恢复"""
+        task = self.get_object()
+        if not task.is_deleted:
+            return Response(
+                {"detail": _("Task is not deleted.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        task.is_deleted = False
+        task.deleted_at = None
+        task.save(update_fields=["is_deleted", "deleted_at"])
+        serializer = TaskDetailSerializer(task)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["delete"], url_path="permanent")
+    def permanent_destroy(self, request, *args, **kwargs):
+        """永久删除"""
+        task = self.get_object()
+        task.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=["get"], url_path="trash")
+    def trash(self, request):
+        """回收站列表"""
+        qs = Task.objects.deleted()
+        if not request.user.is_staff:
+            qs = qs.filter(created_by=request.user)
+        qs = qs.select_related("created_by").prefetch_related("tags")
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = TaskDetailSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = TaskDetailSerializer(qs, many=True)
+        return Response(serializer.data)
