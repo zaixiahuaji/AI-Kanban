@@ -161,8 +161,8 @@ def test_api_is_owner_or_admin_permission(api_client, regular_user, admin_user):
 
     perm = IsOwnerOrAdmin()
 
-    obj = Mock()
-    obj.user = regular_user
+    obj = Mock(spec=["created_by", "user"])
+    obj.created_by = regular_user
 
     # Regular user can access their own data
     request = Mock()

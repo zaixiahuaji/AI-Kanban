@@ -197,6 +197,13 @@ class TaskViewSet(
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        output_serializer = TaskDetailSerializer(serializer.instance)
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+
     @extend_schema(request=TaskUpdateSerializer, responses={200: TaskDetailSerializer})
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
@@ -216,7 +223,7 @@ class TaskViewSet(
     @action(detail=True, methods=["post"], url_path="restore")
     def restore(self, request, *args, **kwargs):
         """从回收站恢复"""
-        task = self.get_object()
+        task = self._get_deleted_object()
         if not task.is_deleted:
             return Response(
                 {"detail": _("Task is not deleted.")},
@@ -231,9 +238,18 @@ class TaskViewSet(
     @action(detail=True, methods=["delete"], url_path="permanent")
     def permanent_destroy(self, request, *args, **kwargs):
         """永久删除"""
-        task = self.get_object()
+        task = self._get_deleted_object()
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def _get_deleted_object(self):
+        """获取已删除的任务对象（含权限检查）"""
+        qs = Task.objects.all()
+        if not self.request.user.is_staff:
+            qs = qs.filter(created_by=self.request.user)
+        obj = qs.get(pk=self.kwargs["pk"])
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     @action(detail=False, methods=["get"], url_path="trash")
     def trash(self, request):
