@@ -49,10 +49,26 @@ const changePasswordFormSchema = z
     path: ['passwordRetype']
   })
 
+const taskFormSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  status: z.enum(['todo', 'in_progress', 'done']),
+  priority: z.enum(['high', 'medium', 'low']),
+  dueDate: z.string().nullable().optional(),
+  tags: z.array(z.string()).optional()
+})
+
+const tagFormSchema = z.object({
+  name: z.string().min(1).max(50),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/)
+})
+
 export {
   changePasswordFormSchema,
   deleteAccountFormSchema,
   loginFormSchema,
   profileFormSchema,
-  registerFormSchema
+  registerFormSchema,
+  tagFormSchema,
+  taskFormSchema
 }
