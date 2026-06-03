@@ -119,7 +119,15 @@
     "delete": "删除",
     "overdue": "已过期",
     "restoreSuccess": "任务已恢复",
-    "deleteSuccess": "任务已删除"
+    "deleteSuccess": "任务已删除",
+    "createColumn": "新建列",
+    "renameColumn": "重命名列",
+    "columnNamePlaceholder": "列名称",
+    "deleteColumn": "删除列",
+    "deleteColumnSuccess": "列已删除",
+    "deleteColumnFailed": "删除列失败",
+    "createColumnFailed": "创建列失败",
+    "renameColumnFailed": "重命名失败"
   },
   "tags": {
     "title": "标签管理",

@@ -119,7 +119,15 @@
     "delete": "Delete",
     "overdue": "Overdue",
     "restoreSuccess": "Task restored",
-    "deleteSuccess": "Task deleted"
+    "deleteSuccess": "Task deleted",
+    "createColumn": "New Column",
+    "renameColumn": "Rename Column",
+    "columnNamePlaceholder": "Column name",
+    "deleteColumn": "Delete Column",
+    "deleteColumnSuccess": "Column deleted",
+    "deleteColumnFailed": "Failed to delete column",
+    "createColumnFailed": "Failed to create column",
+    "renameColumnFailed": "Failed to rename"
   },
   "tags": {
     "title": "Tags",

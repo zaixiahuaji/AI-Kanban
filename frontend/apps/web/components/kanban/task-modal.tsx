@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslations } from 'next-intl'
 import { createTask, deleteTask, updateTask } from '@/actions/task-actions'
+import type { Column } from '@/lib/kanban-utils'
 
 interface Tag {
   id: string
@@ -24,11 +25,12 @@ interface Task {
 interface TaskModalProps {
   task?: Task | null // null/undefined = create mode, task object = edit mode
   tags: Tag[]
+  columns: Column[]
   onClose: () => void
   onSuccess: () => void
 }
 
-export function TaskModal({ task, tags, onClose, onSuccess }: TaskModalProps) {
+export function TaskModal({ task, tags, columns, onClose, onSuccess }: TaskModalProps) {
   const t = useTranslations('kanban')
   const isEdit = !!task
   const [loading, setLoading] = useState(false)
@@ -211,9 +213,11 @@ export function TaskModal({ task, tags, onClose, onSuccess }: TaskModalProps) {
                 {...register('status')}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-300"
               >
-                <option value="todo">{t('todo')}</option>
-                <option value="in_progress">{t('inProgress')}</option>
-                <option value="done">{t('done')}</option>
+                {columns.map((col) => (
+                  <option key={col.slug} value={col.slug}>
+                    {col.name}
+                  </option>
+                ))}
               </select>
             </div>
           )}
