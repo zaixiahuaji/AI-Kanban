@@ -245,7 +245,7 @@ export function KanbanBoard({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="overflow-x-auto pb-4">
+          <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
             <div style={{ minWidth: 'max-content' }}>
               {groups.map((group) => (
                 <KanbanRow
@@ -270,7 +270,7 @@ export function KanbanBoard({
           </DragOverlay>
         </DndContext>
       ) : (
-        <div className="overflow-x-auto pb-4">
+        <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
           <div style={{ minWidth: 'max-content' }}>
             {groups.map((group) => (
               <KanbanRow

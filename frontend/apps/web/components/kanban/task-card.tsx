@@ -3,6 +3,16 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useTranslations } from 'next-intl'
+import { useLocale } from 'next-intl'
+
+// 确定性日期格式化，避免服务端/客户端 locale 不一致导致 hydration 错误
+function formatDate(dateStr: string, locale: string): string {
+  const d = new Date(dateStr)
+  const y = d.getFullYear()
+  const m = d.getMonth() + 1
+  const day = d.getDate()
+  return locale === 'zh-CN' ? `${y}/${m}/${day}` : `${m}/${day}/${y}`
+}
 
 interface Tag {
   id: string
@@ -24,6 +34,7 @@ interface TaskCardProps {
 
 export function TaskCard({ task, onClick }: TaskCardProps) {
   const t = useTranslations('kanban')
+  const locale = useLocale()
   const {
     attributes,
     listeners,
@@ -62,7 +73,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
 
       {task.tags.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1">
-          {task.tags.slice(0, 3).map((tag) => (
+          {task.tags.map((tag) => (
             <span
               key={tag.id}
               className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs"
@@ -89,7 +100,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
             className={`text-xs ${task.is_overdue ? 'font-medium text-red-600' : 'text-gray-400'}`}
           >
             {task.is_overdue && `${t('overdue')} `}
-            {new Date(task.due_date).toLocaleDateString()}
+            {formatDate(task.due_date, locale)}
           </span>
         )}
       </div>

@@ -40,7 +40,7 @@ export function TaskModal({ task, tags, columns, onClose, onSuccess }: TaskModal
     defaultValues: {
       title: task?.title || '',
       description: task?.description || '',
-      status: task?.status || 'todo',
+      status: task?.status || columns[0]?.slug || 'todo',
       priority: task?.priority || 'medium',
       due_date: task?.due_date || '',
       tags: task?.tags.map((tag) => tag.id) || [],

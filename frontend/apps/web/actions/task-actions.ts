@@ -11,12 +11,16 @@ export async function getTasks(params?: {
   tag?: string
   search?: string
   page?: number
+  pageSize?: number
 }) {
   const session = await getServerSession(authOptions)
 
   try {
     const apiClient = await getApiClient(session)
-    const response = await apiClient.tasks.tasksList(params?.page)
+    const response = await apiClient.tasks.tasksList({
+      page: params?.page,
+      pageSize: params?.pageSize ?? 200,
+    })
     return { success: true, data: response }
   } catch (error) {
     if (error instanceof ApiError) {
