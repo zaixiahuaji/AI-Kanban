@@ -10,14 +10,16 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { BoardColumn } from './models/BoardColumn';
+export type { PaginatedBoardColumnList } from './models/PaginatedBoardColumnList';
 export type { PaginatedTagList } from './models/PaginatedTagList';
 export type { PaginatedTaskListList } from './models/PaginatedTaskListList';
+export type { PatchedBoardColumn } from './models/PatchedBoardColumn';
 export type { PatchedTag } from './models/PatchedTag';
 export type { PatchedTaskUpdate } from './models/PatchedTaskUpdate';
 export type { PatchedUserCurrent } from './models/PatchedUserCurrent';
 export { PriorityEnum } from './models/PriorityEnum';
 export type { SendCode } from './models/SendCode';
-export { StatusEnum } from './models/StatusEnum';
 export type { Tag } from './models/Tag';
 export type { TagBrief } from './models/TagBrief';
 export type { TaskCreate } from './models/TaskCreate';
@@ -33,6 +35,7 @@ export type { UserCreateError } from './models/UserCreateError';
 export type { UserCurrent } from './models/UserCurrent';
 export type { UserCurrentError } from './models/UserCurrentError';
 
+export { ColumnsService } from './services/ColumnsService';
 export { EmailService } from './services/EmailService';
 export { SchemaService } from './services/SchemaService';
 export { TagsService } from './services/TagsService';

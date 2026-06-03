@@ -72,8 +72,9 @@ export function groupTasksByDimension(
   return [{ key: 'all', label: '', tasks }]
 }
 
-export const COLUMNS = [
-  { id: 'todo', labelKey: 'todo' },
-  { id: 'in_progress', labelKey: 'inProgress' },
-  { id: 'done', labelKey: 'done' },
-] as const
+export interface Column {
+  id: string
+  name: string
+  slug: string
+  position: number
+}

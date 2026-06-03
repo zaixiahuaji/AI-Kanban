@@ -5,6 +5,7 @@
 import type { BaseHttpRequest } from './core/BaseHttpRequest';
 import type { OpenAPIConfig } from './core/OpenAPI';
 import { FetchHttpRequest } from './core/FetchHttpRequest';
+import { ColumnsService } from './services/ColumnsService';
 import { EmailService } from './services/EmailService';
 import { SchemaService } from './services/SchemaService';
 import { TagsService } from './services/TagsService';
@@ -13,6 +14,7 @@ import { TokenService } from './services/TokenService';
 import { UsersService } from './services/UsersService';
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
 export class ApiClient {
+    public readonly columns: ColumnsService;
     public readonly email: EmailService;
     public readonly schema: SchemaService;
     public readonly tags: TagsService;
@@ -32,6 +34,7 @@ export class ApiClient {
             HEADERS: config?.HEADERS,
             ENCODE_PATH: config?.ENCODE_PATH,
         });
+        this.columns = new ColumnsService(this.request);
         this.email = new EmailService(this.request);
         this.schema = new SchemaService(this.request);
         this.tags = new TagsService(this.request);

@@ -3,12 +3,11 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { PriorityEnum } from './PriorityEnum';
-import type { StatusEnum } from './StatusEnum';
 import type { TagBrief } from './TagBrief';
 export type TaskDetail = {
     readonly id: string;
     title: string;
-    status?: StatusEnum;
+    status?: string;
     priority?: PriorityEnum;
     readonly priority_display: string;
     due_date?: string | null;
