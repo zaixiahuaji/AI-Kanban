@@ -58,7 +58,7 @@ export function KanbanColumn({
       />
       <div
         ref={setNodeRef}
-        className={`flex flex-1 flex-col gap-2 p-2 transition-colors ${isOver ? 'bg-blue-50/50' : ''}`}
+        className={`flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-200px)] p-2 transition-colors ${isOver ? 'bg-blue-50/50' : ''}`}
       >
         <SortableContext
           items={tasks.map((task) => task.id)}

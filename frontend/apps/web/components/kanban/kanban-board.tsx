@@ -187,7 +187,7 @@ export function KanbanBoard({
       if (result.success && result.data) {
         onColumnsChange([...columns, result.data as Column])
       } else {
-        // 创建列失败
+        window.alert(result.message || t('createColumnFailed'))
       }
     } else if (columnModal.mode === 'rename' && columnModal.columnId) {
       const result = await updateColumn(columnModal.columnId, { name })
@@ -198,7 +198,7 @@ export function KanbanBoard({
           ),
         )
       } else {
-        // 重命名列失败
+        window.alert(result.message || t('renameColumnFailed'))
       }
     }
   }
@@ -208,7 +208,7 @@ export function KanbanBoard({
     if (result.success) {
       onColumnsChange(columns.filter((c) => c.id !== columnId))
     } else {
-      // 删除列失败
+      window.alert(result.message || t('deleteColumnFailed'))
     }
   }
 
@@ -220,36 +220,6 @@ export function KanbanBoard({
       initialName: currentName,
     })
   }
-
-  // 渲染看板行 + 添加列按钮
-  const renderBoard = () => (
-    <>
-      {groups.map((group) => (
-        <KanbanRow
-          key={group.key}
-          rowKey={group.key}
-          label={group.label}
-          color={group.color}
-          tasks={group.tasks}
-          columns={columns}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onTaskClick={onTaskClick as any}
-          onRenameColumn={handleRenameColumn}
-          onDeleteColumn={handleDeleteColumn}
-        />
-      ))}
-      {/* 添加列按钮 */}
-      <button
-        type="button"
-        onClick={() =>
-          setColumnModal({ open: true, mode: 'create' })
-        }
-        className="flex-shrink-0 w-[60px] rounded-lg border-2 border-dashed border-gray-300 py-8 text-gray-400 hover:border-gray-400 hover:text-gray-500 transition-colors"
-      >
-        +
-      </button>
-    </>
-  )
 
   return (
     <div>
@@ -267,7 +237,7 @@ export function KanbanBoard({
         />
       </div>
 
-      {/* 看板主体：水平滚动布局 */}
+      {/* 看板主体：水平滚动，分组垂直堆叠 */}
       {mounted ? (
         <DndContext
           sensors={sensors}
@@ -276,8 +246,22 @@ export function KanbanBoard({
           onDragEnd={handleDragEnd}
         >
           <div className="overflow-x-auto pb-4">
-            <div className="flex gap-3" style={{ minWidth: 'max-content' }}>
-              {renderBoard()}
+            <div style={{ minWidth: 'max-content' }}>
+              {groups.map((group) => (
+                <KanbanRow
+                  key={group.key}
+                  rowKey={group.key}
+                  label={group.label}
+                  color={group.color}
+                  tasks={group.tasks}
+                  columns={columns}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  onTaskClick={onTaskClick as any}
+                  onRenameColumn={handleRenameColumn}
+                  onDeleteColumn={handleDeleteColumn}
+                  onAddColumn={() => setColumnModal({ open: true, mode: 'create' })}
+                />
+              ))}
             </div>
           </div>
 
@@ -287,8 +271,22 @@ export function KanbanBoard({
         </DndContext>
       ) : (
         <div className="overflow-x-auto pb-4">
-          <div className="flex gap-3" style={{ minWidth: 'max-content' }}>
-            {renderBoard()}
+          <div style={{ minWidth: 'max-content' }}>
+            {groups.map((group) => (
+              <KanbanRow
+                key={group.key}
+                rowKey={group.key}
+                label={group.label}
+                color={group.color}
+                tasks={group.tasks}
+                columns={columns}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                onTaskClick={onTaskClick as any}
+                onRenameColumn={handleRenameColumn}
+                onDeleteColumn={handleDeleteColumn}
+                onAddColumn={() => setColumnModal({ open: true, mode: 'create' })}
+              />
+            ))}
           </div>
         </div>
       )}

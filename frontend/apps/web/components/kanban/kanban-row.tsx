@@ -22,6 +22,7 @@ interface KanbanRowProps {
   onTaskClick?: (task: Task) => void
   onRenameColumn?: (columnId: string, currentName: string) => void
   onDeleteColumn?: (columnId: string) => void
+  onAddColumn?: () => void
 }
 
 export function KanbanRow({
@@ -33,6 +34,7 @@ export function KanbanRow({
   onTaskClick,
   onRenameColumn,
   onDeleteColumn,
+  onAddColumn,
 }: KanbanRowProps) {
   return (
     <div className="mb-4">
@@ -48,7 +50,7 @@ export function KanbanRow({
           <span className="text-xs text-gray-400">({tasks.length})</span>
         </div>
       )}
-      <div className="flex gap-3">
+      <div className="flex gap-3 items-start">
         {columns.map((col) => (
           <KanbanColumn
             key={col.slug}
@@ -61,6 +63,16 @@ export function KanbanRow({
             onDelete={onDeleteColumn ? () => onDeleteColumn(col.id) : undefined}
           />
         ))}
+        {/* 添加列按钮 */}
+        {onAddColumn && (
+          <button
+            type="button"
+            onClick={onAddColumn}
+            className="self-start mt-0 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-xl text-gray-400 transition-colors hover:border-gray-400 hover:text-gray-500"
+          >
+            +
+          </button>
+        )}
       </div>
     </div>
   )

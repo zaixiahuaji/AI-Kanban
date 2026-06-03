@@ -50,6 +50,7 @@ export function KanbanPageClient({ initialTasks, tags, columns }: KanbanPageClie
         <TaskModal
           task={modalTask}
           tags={tags}
+          columns={columnList}
           onClose={() => setModalTask(undefined)}
           onSuccess={refreshTasks}
         />
