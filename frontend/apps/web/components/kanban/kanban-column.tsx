@@ -8,6 +8,7 @@ import {
 import { useTranslations } from 'next-intl'
 
 import { TaskCard } from './task-card'
+import { KanbanColumnHeader } from './kanban-column-header'
 
 interface Task {
   id: string
@@ -21,30 +22,40 @@ interface Task {
 
 interface KanbanColumnProps {
   id: string
+  rowKey: string
   title: string
   tasks: Task[]
   onTaskClick?: (task: Task) => void
+  onRename?: () => void
+  onDelete?: () => void
+}
+
+// 用 :: 作为分隔符确保复合 ID 唯一
+function makeDroppableId(rowKey: string, columnId: string): string {
+  return `${rowKey}::${columnId}`
 }
 
 export function KanbanColumn({
   id,
+  rowKey,
   title,
   tasks,
   onTaskClick,
+  onRename,
+  onDelete,
 }: KanbanColumnProps) {
   const t = useTranslations('kanban')
-  const { setNodeRef, isOver } = useDroppable({ id })
+  const droppableId = makeDroppableId(rowKey, id)
+  const { setNodeRef, isOver } = useDroppable({ id: droppableId })
 
   return (
-    <div className="flex min-w-[280px] flex-1 flex-col rounded-lg bg-gray-100/50">
-      <div className="flex items-center justify-between px-3 py-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-          {title}
-        </h3>
-        <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600">
-          {tasks.length}
-        </span>
-      </div>
+    <div className="w-[240px] flex-shrink-0 flex flex-col rounded-lg bg-gray-100/50">
+      <KanbanColumnHeader
+        title={title}
+        count={tasks.length}
+        onRename={onRename}
+        onDelete={onDelete}
+      />
       <div
         ref={setNodeRef}
         className={`flex flex-1 flex-col gap-2 p-2 transition-colors ${isOver ? 'bg-blue-50/50' : ''}`}

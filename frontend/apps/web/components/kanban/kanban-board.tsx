@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -19,35 +19,61 @@ import {
   type SwimlaneDimension,
   type Task,
   type Tag,
+  type Column,
 } from '@/lib/kanban-utils'
 import { KanbanRow } from './kanban-row'
 import { SwimlaneToggle } from './swimlane-toggle'
 import { KanbanFilters } from './kanban-filters'
 import { TaskCard } from './task-card'
+import { ColumnManageModal } from './column-manage-modal'
 import { updateTask } from '@/actions/task-actions'
+import { createColumn, updateColumn, deleteColumn } from '@/actions/column-actions'
 
 interface KanbanBoardProps {
   initialTasks: Task[]
   tags: Tag[]
+  columns: Column[]
+  onColumnsChange: (columns: Column[]) => void
   onTaskClick?: (task: Task) => void
 }
 
 export function KanbanBoard({
   initialTasks,
   tags,
+  columns,
+  onColumnsChange,
   onTaskClick,
 }: KanbanBoardProps) {
   const t = useTranslations('kanban')
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [mounted, setMounted] = useState(false)
   const [swimlane, setSwimlane] = useState<SwimlaneDimension>('none')
   const [search, setSearch] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
   const [activeTask, setActiveTask] = useState<Task | null>(null)
 
+  // 列管理弹窗状态
+  const [columnModal, setColumnModal] = useState<{
+    open: boolean
+    mode: 'create' | 'rename'
+    columnId?: string
+    initialName?: string
+  }>({ open: false, mode: 'create' })
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor),
   )
+
+  // 当父组件刷新任务列表时，同步到内部状态
+  useEffect(() => {
+    setTasks(initialTasks)
+  }, [initialTasks])
+
+  // 客户端挂载后才启用 DndContext，避免 hydration 不匹配
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // 应用筛选
   const filteredTasks = tasks.filter((task) => {
@@ -70,6 +96,24 @@ export function KanbanBoard({
     [tasks],
   )
 
+  // 解析 droppable ID，提取 rowKey 和 columnId
+  const parseDroppableId = useCallback(
+    (id: string) => {
+      const columnSlugs = columns.map((c) => c.slug)
+      // 直接匹配列 slug（无泳道时的 droppable）
+      if (columnSlugs.includes(id)) {
+        return { rowKey: null, columnId: id }
+      }
+      // 格式：rowKey::columnId
+      const parts = id.split('::')
+      if (parts.length === 2 && columnSlugs.includes(parts[1])) {
+        return { rowKey: parts[0], columnId: parts[1] }
+      }
+      return { rowKey: null, columnId: null }
+    },
+    [columns],
+  )
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       setActiveTask(null)
@@ -80,38 +124,131 @@ export function KanbanBoard({
       const task = tasks.find((t) => t.id === taskId)
       if (!task) return
 
-      // 根据放置目标确定新状态
-      // over.id 可以是列 id (todo/in_progress/done) 或另一个任务 id
+      // 根据放置目标确定新状态和优先级
+      const { rowKey, columnId } = parseDroppableId(over.id as string)
       let newStatus = task.status
-      const columnIds = ['todo', 'in_progress', 'done']
-      if (columnIds.includes(over.id as string)) {
-        newStatus = over.id as string
+      let newPriority = task.priority
+
+      if (columnId) {
+        // 放在列容器上
+        newStatus = columnId
       } else {
         // 放在另一个任务上 — 取该任务所在列的状态
         const targetTask = tasks.find((t) => t.id === over.id)
-        if (targetTask) newStatus = targetTask.status
+        if (targetTask) {
+          newStatus = targetTask.status
+          if (swimlane === 'priority') newPriority = targetTask.priority
+        }
       }
 
-      if (newStatus === task.status) return
+      // 跨优先级拖拽：rowKey 与当前优先级不同时更新
+      if (swimlane === 'priority' && rowKey && rowKey !== task.priority) {
+        newPriority = rowKey
+      }
+
+      // 收集需要更新的字段
+      const updates: Record<string, string> = {}
+      if (newStatus !== task.status) updates.status = newStatus
+      if (newPriority !== task.priority) updates.priority = newPriority
+      if (Object.keys(updates).length === 0) return
 
       // 乐观更新
       const oldStatus = task.status
+      const oldPriority = task.priority
       setTasks((prev) =>
-        prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)),
+        prev.map((t) =>
+          t.id === taskId
+            ? { ...t, ...updates }
+            : t,
+        ),
       )
 
       // 服务端更新
-      const result = await updateTask(taskId, { status: newStatus })
+      const result = await updateTask(taskId, updates)
       if (!result.success) {
         // 失败时回滚
         setTasks((prev) =>
           prev.map((t) =>
-            t.id === taskId ? { ...t, status: oldStatus } : t,
+            t.id === taskId
+              ? { ...t, status: oldStatus, priority: oldPriority }
+              : t,
           ),
         )
+        // 移动失败已自动回滚
       }
     },
-    [tasks],
+    [tasks, swimlane, parseDroppableId],
+  )
+
+  // 列管理操作
+  const handleColumnSubmit = async (name: string) => {
+    if (columnModal.mode === 'create') {
+      const result = await createColumn(name)
+      if (result.success && result.data) {
+        onColumnsChange([...columns, result.data as Column])
+      } else {
+        // 创建列失败
+      }
+    } else if (columnModal.mode === 'rename' && columnModal.columnId) {
+      const result = await updateColumn(columnModal.columnId, { name })
+      if (result.success && result.data) {
+        onColumnsChange(
+          columns.map((c) =>
+            c.id === columnModal.columnId ? (result.data as Column) : c,
+          ),
+        )
+      } else {
+        // 重命名列失败
+      }
+    }
+  }
+
+  const handleDeleteColumn = async (columnId: string) => {
+    const result = await deleteColumn(columnId)
+    if (result.success) {
+      onColumnsChange(columns.filter((c) => c.id !== columnId))
+    } else {
+      // 删除列失败
+    }
+  }
+
+  const handleRenameColumn = (columnId: string, currentName: string) => {
+    setColumnModal({
+      open: true,
+      mode: 'rename',
+      columnId,
+      initialName: currentName,
+    })
+  }
+
+  // 渲染看板行 + 添加列按钮
+  const renderBoard = () => (
+    <>
+      {groups.map((group) => (
+        <KanbanRow
+          key={group.key}
+          rowKey={group.key}
+          label={group.label}
+          color={group.color}
+          tasks={group.tasks}
+          columns={columns}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onTaskClick={onTaskClick as any}
+          onRenameColumn={handleRenameColumn}
+          onDeleteColumn={handleDeleteColumn}
+        />
+      ))}
+      {/* 添加列按钮 */}
+      <button
+        type="button"
+        onClick={() =>
+          setColumnModal({ open: true, mode: 'create' })
+        }
+        className="flex-shrink-0 w-[60px] rounded-lg border-2 border-dashed border-gray-300 py-8 text-gray-400 hover:border-gray-400 hover:text-gray-500 transition-colors"
+      >
+        +
+      </button>
+    </>
   )
 
   return (
@@ -130,27 +267,40 @@ export function KanbanBoard({
         />
       </div>
 
-      {/* 看板主体：拖拽上下文 */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        {groups.map((group) => (
-          <KanbanRow
-            key={group.key}
-            label={group.label}
-            color={group.color}
-            tasks={group.tasks}
-            onTaskClick={onTaskClick}
-          />
-        ))}
+      {/* 看板主体：水平滚动布局 */}
+      {mounted ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="overflow-x-auto pb-4">
+            <div className="flex gap-3" style={{ minWidth: 'max-content' }}>
+              {renderBoard()}
+            </div>
+          </div>
 
-        <DragOverlay>
-          {activeTask && <TaskCard task={activeTask} />}
-        </DragOverlay>
-      </DndContext>
+          <DragOverlay>
+            {activeTask && <TaskCard task={activeTask} />}
+          </DragOverlay>
+        </DndContext>
+      ) : (
+        <div className="overflow-x-auto pb-4">
+          <div className="flex gap-3" style={{ minWidth: 'max-content' }}>
+            {renderBoard()}
+          </div>
+        </div>
+      )}
+
+      {/* 列管理弹窗 */}
+      <ColumnManageModal
+        open={columnModal.open}
+        mode={columnModal.mode}
+        initialName={columnModal.initialName}
+        onClose={() => setColumnModal({ open: false, mode: 'create' })}
+        onSubmit={handleColumnSubmit}
+      />
     </div>
   )
 }

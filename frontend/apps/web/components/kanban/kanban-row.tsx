@@ -1,9 +1,7 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
-
 import { KanbanColumn } from './kanban-column'
-import { COLUMNS } from '@/lib/kanban-utils'
+import type { Column } from '@/lib/kanban-utils'
 
 interface Task {
   id: string
@@ -16,15 +14,26 @@ interface Task {
 }
 
 interface KanbanRowProps {
+  rowKey: string
   label?: string
   color?: string
   tasks: Task[]
+  columns: Column[]
   onTaskClick?: (task: Task) => void
+  onRenameColumn?: (columnId: string, currentName: string) => void
+  onDeleteColumn?: (columnId: string) => void
 }
 
-export function KanbanRow({ label, color, tasks, onTaskClick }: KanbanRowProps) {
-  const t = useTranslations('kanban')
-
+export function KanbanRow({
+  rowKey,
+  label,
+  color,
+  tasks,
+  columns,
+  onTaskClick,
+  onRenameColumn,
+  onDeleteColumn,
+}: KanbanRowProps) {
   return (
     <div className="mb-4">
       {label && (
@@ -40,13 +49,16 @@ export function KanbanRow({ label, color, tasks, onTaskClick }: KanbanRowProps) 
         </div>
       )}
       <div className="flex gap-3">
-        {COLUMNS.map((col) => (
+        {columns.map((col) => (
           <KanbanColumn
-            key={col.id}
-            id={col.id}
-            title={t(col.labelKey as Parameters<typeof t>[0])}
-            tasks={tasks.filter((task) => task.status === col.id)}
+            key={col.slug}
+            id={col.slug}
+            rowKey={rowKey}
+            title={col.name}
+            tasks={tasks.filter((task) => task.status === col.slug)}
             onTaskClick={onTaskClick}
+            onRename={onRenameColumn ? () => onRenameColumn(col.id, col.name) : undefined}
+            onDelete={onDeleteColumn ? () => onDeleteColumn(col.id) : undefined}
           />
         ))}
       </div>

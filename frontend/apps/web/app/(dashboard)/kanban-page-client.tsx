@@ -5,16 +5,18 @@ import { useTranslations } from 'next-intl'
 import { KanbanBoard } from '@/components/kanban/kanban-board'
 import { TaskModal } from '@/components/kanban/task-modal'
 import { getTasks } from '@/actions/task-actions'
-import type { Task, Tag } from '@/lib/kanban-utils'
+import type { Task, Tag, Column } from '@/lib/kanban-utils'
 
 interface KanbanPageClientProps {
   initialTasks: Task[]
   tags: Tag[]
+  columns: Column[]
 }
 
-export function KanbanPageClient({ initialTasks, tags }: KanbanPageClientProps) {
+export function KanbanPageClient({ initialTasks, tags, columns }: KanbanPageClientProps) {
   const t = useTranslations('kanban')
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [columnList, setColumnList] = useState<Column[]>(columns)
   // undefined = 关闭, null = 创建模式, task = 编辑模式
   const [modalTask, setModalTask] = useState<Task | null | undefined>(undefined)
 
@@ -39,6 +41,8 @@ export function KanbanPageClient({ initialTasks, tags }: KanbanPageClientProps) 
       <KanbanBoard
         initialTasks={tasks}
         tags={tags}
+        columns={columnList}
+        onColumnsChange={setColumnList}
         onTaskClick={(task) => setModalTask(task)}
       />
 
