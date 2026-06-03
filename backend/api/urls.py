@@ -5,10 +5,11 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .api import SendCodeView, TagViewSet, TaskViewSet, UserViewSet
+from .api import BoardColumnViewSet, SendCodeView, TagViewSet, TaskViewSet, UserViewSet
 
 router = routers.DefaultRouter()
 router.register("users", UserViewSet, basename="api-users")
+router.register("columns", BoardColumnViewSet, basename="api-columns")
 router.register("tags", TagViewSet, basename="api-tags")
 router.register("tasks", TaskViewSet, basename="api-tasks")
 

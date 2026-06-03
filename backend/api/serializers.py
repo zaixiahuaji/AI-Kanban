@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
 
-from .models import EmailVerification, Tag, Task
+from .models import BoardColumn, EmailVerification, Tag, Task
 
 User = get_user_model()
 
@@ -179,6 +179,23 @@ class SendCodeSerializer(serializers.Serializer):
             self.fail("daily_limit")
 
         return value
+
+
+######################################################################
+# BoardColumn
+######################################################################
+
+
+class BoardColumnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BoardColumn
+        fields = ["id", "name", "slug", "position", "created_at", "modified_at"]
+        read_only_fields = ["slug", "created_at", "modified_at"]
+
+    def validate_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError(_("Column name cannot be empty."))
+        return value.strip()
 
 
 ######################################################################

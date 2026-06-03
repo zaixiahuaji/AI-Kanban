@@ -146,15 +146,77 @@ class UserViewSet(
 ######################################################################
 from django.utils import timezone
 
-from .models import Tag, Task
+from .models import BoardColumn, Tag, Task
 from .permissions import IsOwnerOrAdmin
 from .serializers import (
+    BoardColumnSerializer,
     TagSerializer,
     TaskCreateSerializer,
     TaskDetailSerializer,
     TaskListSerializer,
     TaskUpdateSerializer,
 )
+
+
+class BoardColumnViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = BoardColumnSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+
+    def get_queryset(self):
+        return BoardColumn.objects.filter(created_by=self.request.user)
+
+    def perform_create(self, serializer):
+        from django.utils.text import slugify
+
+        user = self.request.user
+        name = serializer.validated_data["name"]
+        base_slug = slugify(name)
+        if not base_slug:
+            base_slug = "column"
+        slug = base_slug
+        counter = 1
+        while BoardColumn.objects.filter(
+            created_by=user, slug=slug
+        ).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        max_pos = (
+            BoardColumn.objects.filter(created_by=user).order_by("-position").values_list("position", flat=True).first()
+        )
+        serializer.save(created_by=user, slug=slug, position=(max_pos or -1) + 1)
+
+    def destroy(self, request, *args, **kwargs):
+        column = self.get_object()
+        task_count = Task.objects.filter(
+            created_by=request.user, status=column.slug, is_deleted=False
+        ).count()
+        if task_count > 0:
+            return Response(
+                {"detail": _("Column has %(count)s tasks. Move them first.") % {"count": task_count}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)
+
+    @action(detail=False, methods=["post"])
+    def reorder(self, request):
+        items = request.data.get("items", [])
+        if not isinstance(items, list):
+            return Response(
+                {"detail": _("Invalid data.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        for item in items:
+            BoardColumn.objects.filter(
+                id=item.get("id"), created_by=request.user
+            ).update(position=item.get("position", 0))
+        return Response({"status": "ok"})
 
 
 class TagViewSet(viewsets.ModelViewSet):
