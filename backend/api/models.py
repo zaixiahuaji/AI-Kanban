@@ -48,6 +48,36 @@ class EmailVerification(models.Model):
         return f"{self.email} - {self.code}"
 
 
+class BoardColumn(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(_("name"), max_length=50)
+    slug = models.CharField(_("slug"), max_length=50)
+    position = models.IntegerField(_("position"), default=0)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="board_columns",
+        verbose_name=_("created by"),
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    modified_at = models.DateTimeField(_("modified at"), auto_now=True)
+
+    class Meta:
+        db_table = "board_columns"
+        ordering = ["position"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["created_by", "slug"],
+                name="unique_column_slug_per_user",
+            ),
+        ]
+        verbose_name = _("board column")
+        verbose_name_plural = _("board columns")
+
+    def __str__(self):
+        return self.name
+
+
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("name"), max_length=50)
@@ -73,11 +103,6 @@ class Tag(models.Model):
 
 
 class Task(models.Model):
-    STATUS_CHOICES = [
-        ("todo", _("To Do")),
-        ("in_progress", _("In Progress")),
-        ("done", _("Done")),
-    ]
     PRIORITY_CHOICES = [
         ("high", _("High")),
         ("medium", _("Medium")),
@@ -88,7 +113,7 @@ class Task(models.Model):
     title = models.CharField(_("title"), max_length=200)
     description = models.TextField(_("description"), blank=True, default="")
     status = models.CharField(
-        _("status"), max_length=20, choices=STATUS_CHOICES, default="todo"
+        _("status"), max_length=50, default="todo"
     )
     priority = models.CharField(
         _("priority"), max_length=10, choices=PRIORITY_CHOICES, default="medium"
