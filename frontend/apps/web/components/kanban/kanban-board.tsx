@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -51,18 +51,6 @@ export function KanbanBoard({
   const [search, setSearch] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
   const [activeTask, setActiveTask] = useState<Task | null>(null)
-
-  // 滚动同步：顶部滚动栏 ↔ 主内容区
-  const topScrollRef = useRef<HTMLDivElement>(null)
-  const mainScrollRef = useRef<HTMLDivElement>(null)
-
-  const syncScroll = useCallback((source: 'top' | 'main') => {
-    if (source === 'top' && topScrollRef.current && mainScrollRef.current) {
-      mainScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft
-    } else if (source === 'main' && mainScrollRef.current && topScrollRef.current) {
-      topScrollRef.current.scrollLeft = mainScrollRef.current.scrollLeft
-    }
-  }, [])
 
   // 列管理弹窗状态
   const [columnModal, setColumnModal] = useState<{
@@ -249,16 +237,6 @@ export function KanbanBoard({
         />
       </div>
 
-      {/* 顶部水平滚动栏（同步主内容区滚动） */}
-      <div
-        ref={topScrollRef}
-        onScroll={() => syncScroll('top')}
-        className="overflow-x-auto overflow-y-hidden"
-        style={{ height: '14px' }}
-      >
-        <div style={{ minWidth: 'max-content', height: '1px' }} />
-      </div>
-
       {/* 看板主体：水平滚动，分组垂直堆叠 */}
       {mounted ? (
         <DndContext
@@ -267,12 +245,7 @@ export function KanbanBoard({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div
-            ref={mainScrollRef}
-            onScroll={() => syncScroll('main')}
-            className="overflow-x-auto overflow-y-auto"
-            style={{ maxHeight: 'calc(100vh - 180px)' }}
-          >
+          <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
             <div style={{ minWidth: 'max-content' }}>
               {groups.map((group) => (
                 <KanbanRow
@@ -297,12 +270,7 @@ export function KanbanBoard({
           </DragOverlay>
         </DndContext>
       ) : (
-        <div
-          ref={mainScrollRef}
-          onScroll={() => syncScroll('main')}
-          className="overflow-x-auto overflow-y-auto"
-          style={{ maxHeight: 'calc(100vh - 180px)' }}
-        >
+        <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
           <div style={{ minWidth: 'max-content' }}>
             {groups.map((group) => (
               <KanbanRow
