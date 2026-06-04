@@ -7,6 +7,7 @@ import type { TagBrief } from './TagBrief';
 export type TaskList = {
     readonly id: string;
     title: string;
+    description?: string;
     status?: string;
     priority?: PriorityEnum;
     readonly priority_display: string;

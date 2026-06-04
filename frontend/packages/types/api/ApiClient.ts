@@ -8,6 +8,7 @@ import { FetchHttpRequest } from './core/FetchHttpRequest';
 import { ColumnsService } from './services/ColumnsService';
 import { EmailService } from './services/EmailService';
 import { SchemaService } from './services/SchemaService';
+import { StatisticsService } from './services/StatisticsService';
 import { TagsService } from './services/TagsService';
 import { TasksService } from './services/TasksService';
 import { TokenService } from './services/TokenService';
@@ -17,6 +18,7 @@ export class ApiClient {
     public readonly columns: ColumnsService;
     public readonly email: EmailService;
     public readonly schema: SchemaService;
+    public readonly statistics: StatisticsService;
     public readonly tags: TagsService;
     public readonly tasks: TasksService;
     public readonly token: TokenService;
@@ -37,6 +39,7 @@ export class ApiClient {
         this.columns = new ColumnsService(this.request);
         this.email = new EmailService(this.request);
         this.schema = new SchemaService(this.request);
+        this.statistics = new StatisticsService(this.request);
         this.tags = new TagsService(this.request);
         this.tasks = new TasksService(this.request);
         this.token = new TokenService(this.request);

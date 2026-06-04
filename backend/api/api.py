@@ -336,13 +336,13 @@ class TaskViewSet(
 ######################################################################
 
 
-class StatisticsViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class StatisticsView(APIView):
     """当前用户的任务统计聚合数据"""
 
-    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(responses=StatisticsSerializer)
-    def list(self, request, *args, **kwargs):
+    def get(self, request):
         user = request.user
 
         # 基础 queryset：当前用户未删除的任务

@@ -7,6 +7,7 @@ import type { TagBrief } from './TagBrief';
 export type TaskDetail = {
     readonly id: string;
     title: string;
+    description?: string;
     status?: string;
     priority?: PriorityEnum;
     readonly priority_display: string;
@@ -15,7 +16,6 @@ export type TaskDetail = {
     readonly tags: Array<TagBrief>;
     readonly created_at: string;
     readonly modified_at: string;
-    description?: string;
     created_by: number;
 };
 
