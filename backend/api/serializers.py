@@ -320,3 +320,34 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
         if tags is not None:
             instance.tags.set(tags)
         return instance
+
+
+######################################################################
+# Statistics
+######################################################################
+
+
+class StatusCountSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    label = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class PriorityCountSerializer(serializers.Serializer):
+    priority = serializers.CharField()
+    label = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class TagCountSerializer(serializers.Serializer):
+    tag_id = serializers.UUIDField()
+    name = serializers.CharField()
+    color = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class StatisticsSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    by_status = StatusCountSerializer(many=True)
+    by_priority = PriorityCountSerializer(many=True)
+    by_tag = TagCountSerializer(many=True)
