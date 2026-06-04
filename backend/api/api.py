@@ -146,10 +146,13 @@ class UserViewSet(
 ######################################################################
 from django.utils import timezone
 
+from django.db.models import Count, Q
+
 from .models import BoardColumn, Tag, Task
 from .permissions import IsOwnerOrAdmin
 from .serializers import (
     BoardColumnSerializer,
+    StatisticsSerializer,
     TagSerializer,
     TaskCreateSerializer,
     TaskDetailSerializer,
@@ -325,4 +328,89 @@ class TaskViewSet(
             serializer = TaskDetailSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = TaskDetailSerializer(qs, many=True)
+        return Response(serializer.data)
+
+
+######################################################################
+# Statistics
+######################################################################
+
+
+class StatisticsViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+    """当前用户的任务统计聚合数据"""
+
+    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+
+    @extend_schema(responses=StatisticsSerializer)
+    def list(self, request, *args, **kwargs):
+        user = request.user
+
+        # 基础 queryset：当前用户未删除的任务
+        base_qs = Task.objects.filter(created_by=user, is_deleted=False)
+
+        # 总数
+        total = base_qs.count()
+
+        # 按状态分组计数，并从 BoardColumn 获取 label
+        status_counts = (
+            base_qs.values("status")
+            .annotate(count=Count("id"))
+            .order_by("status")
+        )
+        # 构建 slug -> name 映射
+        column_map = dict(
+            BoardColumn.objects.filter(created_by=user).values_list("slug", "name")
+        )
+        by_status = [
+            {
+                "status": item["status"],
+                "label": column_map.get(item["status"], item["status"]),
+                "count": item["count"],
+            }
+            for item in status_counts
+        ]
+
+        # 按优先级分组计数
+        priority_map = dict(Task.PRIORITY_CHOICES)
+        priority_counts = (
+            base_qs.values("priority")
+            .annotate(count=Count("id"))
+            .order_by("priority")
+        )
+        by_priority = [
+            {
+                "priority": item["priority"],
+                "label": priority_map.get(item["priority"], item["priority"]),
+                "count": item["count"],
+            }
+            for item in priority_counts
+        ]
+
+        # 按标签分组计数（只统计用户自己的标签）
+        by_tag = list(
+            Tag.objects.filter(created_by=user)
+            .annotate(
+                count=Count("tasks", filter=Q(tasks__is_deleted=False))
+            )
+            .filter(count__gt=0)
+            .values("id", "name", "color", "count")
+            .order_by("-count")
+        )
+        by_tag = [
+            {
+                "tag_id": item["id"],
+                "name": item["name"],
+                "color": item["color"],
+                "count": item["count"],
+            }
+            for item in by_tag
+        ]
+
+        data = {
+            "total": total,
+            "by_status": by_status,
+            "by_priority": by_priority,
+            "by_tag": by_tag,
+        }
+        serializer = StatisticsSerializer(data)
         return Response(serializer.data)
