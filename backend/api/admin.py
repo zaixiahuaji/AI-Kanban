@@ -16,6 +16,9 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = UserChangeForm
     add_form = CustomUserCreationForm
     change_password_form = AdminPasswordChangeForm
+    add_fieldsets = (
+        (None, {"classes": ("wide",), "fields": ("username", "email", "password1", "password2")}),
+    )
 
 
 @admin.register(Group)
