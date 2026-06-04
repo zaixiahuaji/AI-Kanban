@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { key: 'kanban', href: '/', icon: '▦' },
   { key: 'tags', href: '/tags', icon: '🏷' },
   { key: 'trash', href: '/trash', icon: '🗑' },
+  { key: 'statistics', href: '/statistics', icon: '📊' },
 ] as const
 
 export function Sidebar() {

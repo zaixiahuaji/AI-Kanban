@@ -83,7 +83,8 @@
     "trash": "Trash",
     "admin": "Admin",
     "logout": "Logout",
-    "logoutConfirm": "Are you sure you want to logout?"
+    "logoutConfirm": "Are you sure you want to logout?",
+    "statistics": "Statistics"
   },
   "kanban": {
     "title": "Kanban",
@@ -154,5 +155,17 @@
     "actions": "Actions",
     "restoreSuccess": "Task restored",
     "deleteSuccess": "Task permanently deleted"
+  },
+  "statistics": {
+    "title": "Statistics",
+    "statusDistribution": "Status Distribution",
+    "priorityDistribution": "Priority Distribution",
+    "tagDistribution": "Tag Distribution",
+    "statusCount": "Status Count",
+    "emptyTitle": "No task data yet",
+    "emptyDescription": "Statistics will be generated after you create tasks",
+    "goToKanban": "Go to Kanban",
+    "total": "Total",
+    "count": "Count"
   }
 }

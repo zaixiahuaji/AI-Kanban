@@ -83,7 +83,8 @@
     "trash": "回收站",
     "admin": "管理后台",
     "logout": "退出登录",
-    "logoutConfirm": "确定退出登录吗？"
+    "logoutConfirm": "确定退出登录吗？",
+    "statistics": "统计"
   },
   "kanban": {
     "title": "看板",
@@ -154,5 +155,17 @@
     "actions": "操作",
     "restoreSuccess": "任务已恢复",
     "deleteSuccess": "任务已永久删除"
+  },
+  "statistics": {
+    "title": "数据统计",
+    "statusDistribution": "状态分布",
+    "priorityDistribution": "优先级分布",
+    "tagDistribution": "标签分布",
+    "statusCount": "状态数量",
+    "emptyTitle": "暂无任务数据",
+    "emptyDescription": "创建任务后将自动生成统计图表",
+    "goToKanban": "前往看板",
+    "total": "总计",
+    "count": "数量"
   }
 }
