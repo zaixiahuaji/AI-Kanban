@@ -245,8 +245,8 @@ export function KanbanBoard({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
-            <div style={{ minWidth: 'max-content' }}>
+          <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)', transform: 'rotateX(180deg)' }}>
+            <div style={{ minWidth: 'max-content', transform: 'rotateX(180deg)' }}>
               {groups.map((group) => (
                 <KanbanRow
                   key={group.key}
