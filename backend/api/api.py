@@ -390,7 +390,7 @@ class StatisticsViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         by_tag = list(
             Tag.objects.filter(created_by=user)
             .annotate(
-                count=Count("tasks", filter=Q(tasks__is_deleted=False))
+                count=Count("task_tags", filter=Q(task_tags__task__is_deleted=False))
             )
             .filter(count__gt=0)
             .values("id", "name", "color", "count")
