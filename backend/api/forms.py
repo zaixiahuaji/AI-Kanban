@@ -1,10 +1,9 @@
-from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
-from django.utils.translation import gettext_lazy as _
+from unfold.forms import UserCreationForm
 
 from .models import User
 
 
-class CustomUserCreationForm(BaseUserCreationForm):
+class CustomUserCreationForm(UserCreationForm):
     """在创建用户表单中加入邮箱字段"""
 
     class Meta:
