@@ -15,14 +15,14 @@ export function FormFooter({
   const actionLink = (
     <Link
       href={link}
-      className="font-medium text-gray-700 underline decoration-gray-400 underline-offset-4"
+      className="font-medium text-gray-900 transition-colors hover:text-gray-700"
     >
       {title}
     </Link>
   )
 
   return (
-    <p className="mt-6 text-center text-gray-500">
+    <p className="mt-6 text-center text-sm text-gray-500">
       {cta} {actionLink}
     </p>
   )

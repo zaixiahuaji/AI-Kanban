@@ -14,8 +14,8 @@ export function SubmitField({
       type="submit"
       disabled={isLoading}
       className={twMerge(
-        'block h-10 w-full rounded bg-purple-600 font-medium text-white',
-        isLoading && 'bg-purple-400'
+        'block h-10 w-full rounded-lg bg-gray-900 font-medium text-white transition-colors hover:bg-gray-800',
+        isLoading && 'bg-gray-700'
       )}
     >
       {children}
