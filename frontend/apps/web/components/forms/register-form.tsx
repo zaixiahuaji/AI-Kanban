@@ -99,7 +99,7 @@ export function RegisterForm({
             type="button"
             onClick={handleSendCode}
             disabled={countdown > 0 || !emailValue}
-            className="h-10 rounded bg-gray-100 px-4 text-sm font-medium text-gray-700 outline outline-1 outline-gray-900/10 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 rounded-lg border border-gray-200 px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {countdown > 0
               ? t('resendCode', { seconds: countdown })
