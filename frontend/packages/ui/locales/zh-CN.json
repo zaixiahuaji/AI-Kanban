@@ -45,7 +45,8 @@
       "firstName": "名",
       "lastName": "姓",
       "submit": "更新资料",
-      "success": "个人资料已成功更新"
+      "success": "个人资料已成功更新",
+      "deleteAccount": "删除账户"
     },
     "changePassword": {
       "title": "设置新密码",
@@ -84,7 +85,10 @@
     "admin": "管理后台",
     "logout": "退出登录",
     "logoutConfirm": "确定退出登录吗？",
-    "statistics": "统计"
+    "statistics": "统计",
+    "profile": "个人资料",
+    "changePassword": "修改密码",
+    "deleteAccount": "删除账户"
   },
   "kanban": {
     "title": "看板",

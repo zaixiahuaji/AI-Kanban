@@ -45,7 +45,8 @@
       "firstName": "First name",
       "lastName": "Last name",
       "submit": "Update profile",
-      "success": "Profile has been successfully updated"
+      "success": "Profile has been successfully updated",
+      "deleteAccount": "Delete account"
     },
     "changePassword": {
       "title": "Set new account password",
@@ -84,7 +85,10 @@
     "admin": "Admin",
     "logout": "Logout",
     "logoutConfirm": "Are you sure you want to logout?",
-    "statistics": "Statistics"
+    "statistics": "Statistics",
+    "profile": "Profile",
+    "changePassword": "Change password",
+    "deleteAccount": "Delete account"
   },
   "kanban": {
     "title": "Kanban",

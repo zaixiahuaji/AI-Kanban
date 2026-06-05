@@ -12,6 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import Link from 'next/link'
 import type { z } from 'zod'
 
 export type ProfileFormSchema = z.infer<typeof profileFormSchema>
@@ -83,6 +84,15 @@ export function ProfileForm({
           {t('submit')}
         </SubmitField>
       </form>
+
+      <div className="mt-6 border-t border-gray-200 pt-4">
+        <Link
+          href="/delete-account"
+          className="text-sm font-medium text-red-600 transition-colors hover:text-red-700"
+        >
+          {t('deleteAccount')}
+        </Link>
+      </div>
     </>
   )
 }
