@@ -27,7 +27,10 @@ export function Sidebar() {
   return (
     <aside className="flex h-screen w-60 flex-col border-r border-gray-200 bg-white">
       {/* Logo */}
-      <div className="flex h-14 items-center border-b border-gray-200 px-4">
+      <div className="flex h-14 items-center gap-3 border-b border-gray-200 px-4">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-900 text-sm font-bold text-white">
+          T
+        </div>
         <span className="text-lg font-semibold text-gray-900">Turbo</span>
       </div>
 
@@ -63,6 +66,41 @@ export function Sidebar() {
             <span>{t('admin')}</span>
           </a>
         )}
+
+        {/* 账户导航 */}
+        <div className="mt-2 border-t border-gray-100 pt-2">
+            <Link
+              href="/profile"
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                pathname === '/profile'
+                  ? 'bg-gray-100 font-medium text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <span className="flex h-5 w-5 items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </span>
+              <span>{t('profile')}</span>
+            </Link>
+            <Link
+              href="/change-password"
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                pathname === '/change-password'
+                  ? 'bg-gray-100 font-medium text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <span className="flex h-5 w-5 items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                </svg>
+              </span>
+              <span>{t('changePassword')}</span>
+            </Link>
+          </div>
       </nav>
 
       {/* Bottom section */}
