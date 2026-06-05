@@ -5,7 +5,7 @@ import type { PropsWithChildren } from 'react'
 
 export function SuccessMessage({ children }: PropsWithChildren) {
   return (
-    <div className="mb-6 rounded bg-green-100 px-4 py-3 text-green-700">
+    <div className="mb-6 rounded-lg bg-green-50 p-3 text-sm text-green-600">
       {children}
     </div>
   )
