@@ -7,5 +7,11 @@ export const metadata: Metadata = {
 }
 
 export default function DeleteAccount() {
-  return <DeleteAccountForm onSubmitHandler={deleteAccountAction} />
+  return (
+    <div className="mx-auto max-w-lg">
+      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <DeleteAccountForm onSubmitHandler={deleteAccountAction} />
+      </div>
+    </div>
+  )
 }

@@ -7,5 +7,11 @@ export const metadata: Metadata = {
 }
 
 export default function ChangePassword() {
-  return <ChangePaswordForm onSubmitHandler={changePasswordAction} />
+  return (
+    <div className="mx-auto max-w-lg">
+      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <ChangePaswordForm onSubmitHandler={changePasswordAction} />
+      </div>
+    </div>
+  )
 }

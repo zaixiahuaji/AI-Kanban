@@ -14,9 +14,13 @@ export default async function Profile() {
   const apiClient = await getApiClient(session)
 
   return (
-    <ProfileForm
-      currentUser={apiClient.users.usersMeRetrieve()}
-      onSubmitHandler={profileAction}
-    />
+    <div className="mx-auto max-w-lg">
+      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <ProfileForm
+          currentUser={apiClient.users.usersMeRetrieve()}
+          onSubmitHandler={profileAction}
+        />
+      </div>
+    </div>
   )
 }
