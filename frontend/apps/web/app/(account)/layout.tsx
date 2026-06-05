@@ -14,8 +14,10 @@ export default async function AccountLayout({
   }
 
   return (
-    <div className="flex-grow h-screen flex items-center justify-center -my-12 w-full">
-      <div className="w-96">{children}</div>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        {children}
+      </div>
     </div>
   )
 }
