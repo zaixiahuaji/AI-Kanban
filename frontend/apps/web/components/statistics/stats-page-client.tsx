@@ -51,13 +51,13 @@ export function StatsPageClient({ data }: StatsPageClientProps) {
         {/* 状态分布环形图 */}
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <h2 className="mb-2 text-sm font-medium text-gray-700">{t('statusDistribution')}</h2>
-          <StatusDonutChart data={data.by_status} total={data.total} />
+          <StatusDonutChart data={data.by_status} total={data.total} totalLabel={t('total')} />
         </div>
 
         {/* 优先级分布环形图 */}
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <h2 className="mb-2 text-sm font-medium text-gray-700">{t('priorityDistribution')}</h2>
-          <PriorityDonutChart data={data.by_priority} total={data.total} />
+          <PriorityDonutChart data={data.by_priority} total={data.total} totalLabel={t('total')} />
         </div>
 
         {/* 标签分布横向柱状图 */}
