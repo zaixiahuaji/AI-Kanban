@@ -157,3 +157,33 @@ class TaskTag(models.Model):
     class Meta:
         db_table = "task_tags"
         unique_together = [("task", "tag")]
+
+
+class ErrorLog(models.Model):
+    """管理端错误日志，由 ErrorCaptureMiddleware 自动捕获 500+ 响应"""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    timestamp = models.DateTimeField(_("timestamp"), auto_now_add=True)
+    method = models.CharField(_("method"), max_length=10)
+    path = models.CharField(_("path"), max_length=500)
+    status_code = models.IntegerField(_("status code"))
+    message = models.TextField(_("message"), blank=True, default="")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("user"),
+    )
+
+    class Meta:
+        db_table = "error_logs"
+        ordering = ["-timestamp"]
+        verbose_name = _("error log")
+        verbose_name_plural = _("error logs")
+        indexes = [
+            models.Index(fields=["-timestamp"], name="idx_error_timestamp"),
+        ]
+
+    def __str__(self):
+        return f"{self.method} {self.path} - {self.status_code}"
