@@ -4,6 +4,7 @@ from factory import SubFactory
 from factory.django import DjangoModelFactory
 
 from api.models import Tag
+from api.models import Task
 
 
 class UserFactory(DjangoModelFactory):
@@ -22,3 +23,13 @@ class TagFactory(DjangoModelFactory):
 
     class Meta:
         model = Tag
+
+
+class TaskFactory(DjangoModelFactory):
+    title = Sequence(lambda n: f"任务_{n}")
+    status = "todo"
+    priority = "medium"
+    created_by = SubFactory(UserFactory)
+
+    class Meta:
+        model = Task
