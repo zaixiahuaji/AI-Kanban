@@ -104,9 +104,6 @@ class TestAdminUsers:
         data = response.json()
         assert all(u["is_active"] for u in data["results"])
 
-    # 路由定义为 <uuid:pk>，但 User 主键是 BigAutoField(int)，
-    # 导致 URL 无法匹配 int pk，返回 404。标记 xfail 待路由修复。
-    @pytest.mark.xfail(reason="路由使用 uuid:pk 但 User 主键为 int，暂不匹配")
     def test_user_detail(self, admin_client, regular_user):
         """用户详情包含最近任务"""
         response = admin_client.get(f"/api/admin/users/{regular_user.pk}/")
@@ -115,7 +112,6 @@ class TestAdminUsers:
         assert "recent_tasks" in data
         assert data["task_count"] == 0
 
-    @pytest.mark.xfail(reason="路由使用 uuid:pk 但 User 主键为 int，暂不匹配")
     def test_user_disable(self, admin_client, regular_user):
         """禁用用户"""
         response = admin_client.patch(
@@ -126,7 +122,6 @@ class TestAdminUsers:
         regular_user.refresh_from_db()
         assert not regular_user.is_active
 
-    @pytest.mark.xfail(reason="路由使用 uuid:pk 但 User 主键为 int，暂不匹配")
     def test_user_delete(self, admin_client, regular_user):
         """删除用户"""
         response = admin_client.delete(f"/api/admin/users/{regular_user.pk}/")

@@ -212,7 +212,9 @@ class AdminUserDetailView(RetrieveUpdateDestroyAPIView):
             .prefetch_related("tags")
             .order_by("-created_at")[:10]
         )
-        serializer = self.get_serializer(user)
+        # 使用 ListSerializer 序列化基本信息（不包含 recent_tasks），
+        # 然后手动追加 recent_tasks
+        serializer = AdminUserListSerializer(user)
         data = serializer.data
         data["recent_tasks"] = AdminTaskBriefSerializer(
             recent_tasks, many=True
