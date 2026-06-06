@@ -7,6 +7,7 @@ import { ErrorMessage } from '@frontend/ui/messages/error-message'
 import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import type { FieldValues, FormState } from 'react-hook-form'
 import { useForm } from 'react-hook-form'
 
 interface LoginFormValues {
@@ -21,6 +22,9 @@ export function AdminLoginForm() {
   const { register, handleSubmit, formState } = useForm<LoginFormValues>({
     defaultValues: { username: '', password: '' }
   })
+
+  // TextField 组件要求 FormState<FieldValues>，这里做类型转换
+  const fs = formState as unknown as FormState<FieldValues>
 
   const onSubmitHandler = handleSubmit((data) => {
     signIn('credentials', {
@@ -49,7 +53,7 @@ export function AdminLoginForm() {
         <TextField
           type="text"
           register={register('username')}
-          formState={formState}
+          formState={fs}
           label={t('username')}
           placeholder={t('usernamePlaceholder')}
         />
@@ -57,7 +61,7 @@ export function AdminLoginForm() {
         <TextField
           type="password"
           register={register('password', { required: true })}
-          formState={formState}
+          formState={fs}
           label={t('password')}
           placeholder={t('passwordPlaceholder')}
         />

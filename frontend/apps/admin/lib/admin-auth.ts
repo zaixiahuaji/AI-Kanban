@@ -1,7 +1,16 @@
 import { ApiClient, ApiError } from '@frontend/types/api'
-import type { AuthOptions } from 'next-auth'
+import type { UserCurrent } from '@frontend/types/api'
+import type { AuthOptions, User } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { getApiClient } from './api'
+
+// NextAuth 类型扩展，补充 JWT token 上的自定义字段
+type AdminJWT = {
+  access: string
+  refresh: string
+  username: string
+  isStaff: boolean
+}
 
 function decodeToken(token: string): {
   token_type: string
@@ -82,23 +91,26 @@ const adminAuthOptions: AuthOptions = {
       return session
     },
     jwt: async ({ token, user }) => {
-      if (user?.username) {
+      const t = token as unknown as AdminJWT
+
+      if (user && 'username' in user) {
+        const u = user as User & { access: string; refresh: string; is_staff: boolean }
         return {
           ...token,
-          ...user,
-          isStaff: user.is_staff ?? false
+          ...u,
+          isStaff: u.is_staff ?? false
         }
       }
 
       // 刷新 token
-      if (Date.now() / 1000 > decodeToken(token.access).exp) {
+      if (Date.now() / 1000 > decodeToken(t.access).exp) {
         const apiClient = await getApiClient()
         const res = await apiClient.token.tokenRefreshCreate({
-          access: token.access,
-          refresh: token.refresh
+          access: t.access,
+          refresh: t.refresh
         })
 
-        token.access = res.access
+        t.access = res.access
       }
 
       return { ...token, ...user }
@@ -135,7 +147,7 @@ const adminAuthOptions: AuthOptions = {
               Authorization: `Bearer ${res.access}`
             }
           })
-          const userInfo = await userApiClient.users.usersMeRetrieve()
+          const userInfo = await userApiClient.users.usersMeRetrieve() as UserCurrent & { is_staff?: boolean }
 
           // 非管理员直接拒绝
           if (!userInfo.is_staff) {
@@ -143,7 +155,7 @@ const adminAuthOptions: AuthOptions = {
           }
 
           return {
-            id: decodeToken(res.access).user_id,
+            id: String(decodeToken(res.access).user_id),
             username: credentials.username,
             access: res.access,
             refresh: res.refresh,
