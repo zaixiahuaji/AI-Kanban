@@ -47,3 +47,21 @@ services:
       - .env.frontend
     depends_on:
       - api
+  admin:
+    command: sh -c "pnpm install -r && pnpm --filter admin dev"
+    build:
+      context: frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.pnpm-store
+    expose:
+      - "3000"
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env.frontend
+    environment:
+      - NEXTAUTH_URL=http://localhost:3001
+    depends_on:
+      - api
