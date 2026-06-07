@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 
 import { getTasks } from '@/actions/task-actions'
@@ -29,6 +29,13 @@ export function KanbanPageClient({ initialTasks, tags, columns }: KanbanPageClie
       setTasks(result.data?.results || [])
     }
   }
+
+  // 监听 AI 操作完成事件，自动刷新看板
+  useEffect(() => {
+    const handler = () => { refreshTasks() }
+    window.addEventListener('ai-action-done', handler)
+    return () => window.removeEventListener('ai-action-done', handler)
+  }, [])
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">

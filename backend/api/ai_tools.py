@@ -475,12 +475,16 @@ def execute_delete_task(user, tool_args):
 
 
 def execute_batch_move_tasks(user, tool_args):
-    """确认后：批量移动"""
-    found = tool_args.get("found", [])
+    """确认后：批量移动（从标题重新解析，不依赖预解析结果）"""
+    titles = tool_args.get("task_titles", [])
     target = tool_args.get("target_column", "")
     moved = []
-    for item in found:
-        task = Task.objects.filter(id=item["id"], created_by=user).first()
+    for title in titles:
+        task = (
+            Task.objects.active()
+            .filter(created_by=user, title__icontains=title)
+            .first()
+        )
         if task:
             task.status = target
             task.save(update_fields=["status", "modified_at"])
@@ -489,11 +493,15 @@ def execute_batch_move_tasks(user, tool_args):
 
 
 def execute_batch_delete_tasks(user, tool_args):
-    """确认后：批量软删除"""
-    found = tool_args.get("found", [])
+    """确认后：批量软删除（从标题重新解析）"""
+    titles = tool_args.get("task_titles", [])
     deleted = []
-    for item in found:
-        task = Task.objects.filter(id=item["id"], created_by=user).first()
+    for title in titles:
+        task = (
+            Task.objects.active()
+            .filter(created_by=user, title__icontains=title)
+            .first()
+        )
         if task:
             task.is_deleted = True
             task.deleted_at = timezone.now()
@@ -618,22 +626,34 @@ def build_system_prompt(user):
     tag_names = ", ".join(t.name for t in tags[:20])  # 最多 20 个标签
     total_tasks = Task.objects.active().filter(created_by=user).count()
 
-    return f"""你是一个看板任务管理助手。用户会通过自然语言请你帮忙管理看板上的任务。
+    return f"""你是一个看板任务管理助手。你必须使用提供的工具来完成用户的请求。
 
 当前看板状态:
 - 列:{column_summary}
 - 标签: {tag_names or '无'}
 - 总任务数: {total_tasks}个
 
-你可以使用工具来查询、创建、移动和删除任务和列。
+## 重要规则
 
-规则:
-- 优先使用工具完成操作，操作完成后用简短的中文回复确认
-- 如果不确定用户意图，追问而不是猜测
-- 不要执行用户没有明确要求的操作
-- 任务操作仅限当前用户自己的任务
-- 回复使用中文
-- 不要在回复中提及工具名称或技术细节，用自然语言描述操作结果"""
+1. **必须使用工具** — 当用户要求查看、创建、移动或删除任务/列时，你必须调用对应的工具函数，不要仅用文字描述结果。
+2. 简短确认 — 工具调用完成后，用一两句中文确认操作结果。
+3. 不要猜测 — 如果不确定用户意图，追问而不是假设。
+4. 只做用户要求的 — 不要执行用户没有明确请求的操作。
+5. 用中文回复。
+6. 不要提及工具名称或技术细节。
+
+## 何时使用哪个工具
+
+- 用户说"查看/有哪些/列出"任务 → list_tasks
+- 用户说"查看列" → list_columns
+- 用户说"创建/添加"任务 → create_task
+- 用户说"移动/移到"任务 → move_task
+- 用户说"创建列" → create_column
+- 用户说"调整列顺序" → reorder_columns
+- 用户说"删除"单个任务 → delete_task
+- 用户说"把多个任务移到" → batch_move_tasks
+- 用户说"删除多个/批量删除" → batch_delete_tasks
+- 用户说"删除列" → delete_column"""
 
 
 ######################################################################

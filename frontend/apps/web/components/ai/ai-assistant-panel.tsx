@@ -19,7 +19,8 @@ export function AIAssistantPanel() {
   const [isStreaming, setIsStreaming] = useState(false)
   const idCounter = useRef(0)
   const nextId = (prefix: string) => `${prefix}-${++idCounter.current}`
-  // 累积当前轮次的操作卡片，只在 done 时一次性创建消息
+  // ref 同步跟踪文本和操作，避免嵌套状态更新
+  const streamTextRef = useRef('')
   const pendingActions = useRef<AIActionType[]>([])
 
   // 加载历史和额度
@@ -66,6 +67,7 @@ export function AIAssistantPanel() {
       setMessages((prev) => [...prev, tempUserMsg])
       setIsStreaming(true)
       setStreamingText('')
+      streamTextRef.current = ''
       pendingActions.current = []
 
       // 获取 token 用于 SSE
@@ -78,23 +80,26 @@ export function AIAssistantPanel() {
         (event) => {
           switch (event.type) {
             case 'text':
-              setStreamingText((prev) => prev + event.content)
+              // ref 即时累积，state 同步渲染
+              streamTextRef.current += event.content
+              setStreamingText(streamTextRef.current)
               break
             case 'action': {
               // 只累积操作，不创建消息
-              const newAction: AIActionType = {
+              pendingActions.current.push({
                 id: event.action_id,
                 tool_name: event.tool_name,
                 tool_args: event.tool_args,
                 status: event.status,
                 result: event.result,
                 created_at: new Date().toISOString(),
-              }
-              pendingActions.current.push(newAction)
+              })
               break
             }
             case 'error':
               // 错误消息立即显示
+              streamTextRef.current = ''
+              setStreamingText('')
               setMessages((prev) => [
                 ...prev,
                 {
@@ -105,27 +110,28 @@ export function AIAssistantPanel() {
                   actions: [],
                 },
               ])
-              setStreamingText('')
               break
             case 'done': {
-              // 所有文本 + 所有操作 → 一条完整消息
+              // 从 ref 读取完整文本，同一层级更新两个 state
+              const finalText = streamTextRef.current
               const actions = [...pendingActions.current]
+              streamTextRef.current = ''
               pendingActions.current = []
-              setStreamingText((currentText) => {
-                if (currentText || actions.length > 0) {
-                  setMessages((prev) => [
-                    ...prev,
-                    {
-                      id: nextId('assistant'),
-                      role: 'assistant',
-                      content: currentText || '',
-                      created_at: new Date().toISOString(),
-                      actions,
-                    },
-                  ])
-                }
-                return ''
-              })
+
+              if (finalText || actions.length > 0) {
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: nextId('assistant'),
+                    role: 'assistant',
+                    content: finalText || '',
+                    created_at: new Date().toISOString(),
+                    actions,
+                  },
+                ])
+              }
+              // 同一渲染周期清空 streamingText
+              setStreamingText('')
               setIsStreaming(false)
               // 刷新额度
               getUsage().then((res) => {
