@@ -19,6 +19,8 @@ export function AIAssistantPanel() {
   const [isStreaming, setIsStreaming] = useState(false)
   const idCounter = useRef(0)
   const nextId = (prefix: string) => `${prefix}-${++idCounter.current}`
+  // 累积当前轮次的操作卡片，只在 done 时一次性创建消息
+  const pendingActions = useRef<AIActionType[]>([])
 
   // 加载历史和额度
   useEffect(() => {
@@ -64,6 +66,7 @@ export function AIAssistantPanel() {
       setMessages((prev) => [...prev, tempUserMsg])
       setIsStreaming(true)
       setStreamingText('')
+      pendingActions.current = []
 
       // 获取 token 用于 SSE
       const session = await getSession()
@@ -78,7 +81,7 @@ export function AIAssistantPanel() {
               setStreamingText((prev) => prev + event.content)
               break
             case 'action': {
-              const tempAssistantId = nextId('assistant')
+              // 只累积操作，不创建消息
               const newAction: AIActionType = {
                 id: event.action_id,
                 tool_name: event.tool_name,
@@ -87,45 +90,39 @@ export function AIAssistantPanel() {
                 result: event.result,
                 created_at: new Date().toISOString(),
               }
-              // 将 streaming text 保存为 assistant 消息
-              setStreamingText((currentText) => {
-                const assistantMsg: ChatMessage = {
-                  id: tempAssistantId,
-                  role: 'assistant',
-                  content: currentText,
-                  created_at: new Date().toISOString(),
-                  actions: [newAction],
-                }
-                setMessages((prev) => [...prev, assistantMsg])
-                return '' // 清空 streaming
-                })
+              pendingActions.current.push(newAction)
               break
             }
             case 'error':
-              setStreamingText((currentText) => {
-                const errorMsg: ChatMessage = {
+              // 错误消息立即显示
+              setMessages((prev) => [
+                ...prev,
+                {
                   id: nextId('error'),
                   role: 'assistant',
                   content: `⚠️ ${event.content}`,
                   created_at: new Date().toISOString(),
                   actions: [],
-                }
-                setMessages((prev) => [...prev, errorMsg])
-                return ''
-              })
+                },
+              ])
+              setStreamingText('')
               break
-            case 'done':
-              // 如果还有未保存的 streaming text
+            case 'done': {
+              // 所有文本 + 所有操作 → 一条完整消息
+              const actions = [...pendingActions.current]
+              pendingActions.current = []
               setStreamingText((currentText) => {
-                if (currentText) {
-                  const assistantMsg: ChatMessage = {
-                    id: nextId('assistant'),
-                    role: 'assistant',
-                    content: currentText,
-                    created_at: new Date().toISOString(),
-                    actions: [],
-                  }
-                  setMessages((prev) => [...prev, assistantMsg])
+                if (currentText || actions.length > 0) {
+                  setMessages((prev) => [
+                    ...prev,
+                    {
+                      id: nextId('assistant'),
+                      role: 'assistant',
+                      content: currentText || '',
+                      created_at: new Date().toISOString(),
+                      actions,
+                    },
+                  ])
                 }
                 return ''
               })
@@ -134,9 +131,10 @@ export function AIAssistantPanel() {
               getUsage().then((res) => {
                 if (res.success && res.data) setUsage(res.data)
               })
-              // 刷新看板（通过触发 router refresh）
+              // 刷新看板
               window.dispatchEvent(new CustomEvent('ai-action-done'))
               break
+            }
           }
         },
       )
