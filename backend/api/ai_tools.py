@@ -63,6 +63,10 @@ TOOL_SCHEMAS = [
                 "type": "object",
                 "properties": {
                     "title": {"type": "string", "description": "任务标题"},
+                    "description": {
+                        "type": "string",
+                        "description": "任务详细描述，可选",
+                    },
                     "priority": {
                         "type": "string",
                         "enum": ["high", "medium", "low"],
@@ -70,7 +74,12 @@ TOOL_SCHEMAS = [
                     },
                     "status": {
                         "type": "string",
-                        "description": "目标列 slug（如 todo、in_progress、done），默认 todo",
+                        "description": "目标列 slug 或名称。不指定则放到第一列。",
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "标签名称列表，如 ['bug', '紧急']。不存在的标签会自动创建。",
                     },
                 },
                 "required": ["title"],
@@ -301,14 +310,44 @@ def handle_create_task(user, args):
     if not title.strip():
         return False, {"error": "任务标题不能为空"}
     priority = args.get("priority", "medium")
-    status = args.get("status", "todo")
+    description = args.get("description", "")
+
+    # 确定目标列：优先用指定的，否则取用户的第一个列
+    status = args.get("status", "")
+    if status:
+        col, _ = _resolve_column(user, status)
+        if col:
+            status = col.slug
+        # 如果找不到列，status 保留原值（slug 可能直接有效）
+    if not status:
+        first_col = BoardColumn.objects.filter(created_by=user).order_by("position").first()
+        status = first_col.slug if first_col else "todo"
+
     task = Task.objects.create(
         title=title.strip(),
+        description=description,
         priority=priority,
         status=status,
         created_by=user,
     )
-    return True, {"task_id": str(task.id), "title": task.title, "status": task.status}
+
+    # 处理标签
+    tag_names = args.get("tags", [])
+    if tag_names:
+        for name in tag_names:
+            tag, _ = Tag.objects.get_or_create(
+                name=name, created_by=user,
+                defaults={"color": "#6B7280"},
+            )
+            task.tags.add(tag)
+
+    tag_list = [t.name for t in task.tags.all()]
+    return True, {
+        "task_id": str(task.id),
+        "title": task.title,
+        "status": task.status,
+        "tags": tag_list,
+    }
 
 
 def handle_move_task(user, args):
