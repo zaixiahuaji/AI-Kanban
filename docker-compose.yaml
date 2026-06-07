@@ -56,9 +56,9 @@ services:
       - /app/node_modules
       - /app/.pnpm-store
     expose:
-      - "3000"
+      - "3001"
     ports:
-      - "3001:3000"
+      - "3001:3001"
     env_file:
       - .env.frontend
     environment:
