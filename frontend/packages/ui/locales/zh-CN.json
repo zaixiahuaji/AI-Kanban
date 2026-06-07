@@ -172,6 +172,19 @@
     "total": "总计",
     "count": "数量"
   },
+  "ai": {
+    "title": "AI 助手",
+    "inputPlaceholder": "输入消息，如「创建一个高优先级任务」",
+    "send": "发送",
+    "remaining": "今日剩余 {count} 条",
+    "executed": "已执行",
+    "confirmed": "已确认",
+    "undo": "撤销",
+    "confirm": "确认",
+    "cancel": "取消",
+    "undone": "已撤销",
+    "cancelled": "已取消"
+  },
   "admin": {
     "sidebar": {
       "brand": "Turbo Admin",

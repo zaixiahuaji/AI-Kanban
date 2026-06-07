@@ -172,6 +172,19 @@
     "total": "Total",
     "count": "Count"
   },
+  "ai": {
+    "title": "AI Assistant",
+    "inputPlaceholder": "Type a message, e.g. \"Create a high priority task\"",
+    "send": "Send",
+    "remaining": "{count} remaining today",
+    "executed": "Executed",
+    "confirmed": "Confirmed",
+    "undo": "Undo",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "undone": "Undone",
+    "cancelled": "Cancelled"
+  },
   "admin": {
     "sidebar": {
       "brand": "Turbo Admin",
