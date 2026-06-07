@@ -97,7 +97,7 @@ export function TaskTable({ tasks, onDelete }: TaskTableProps) {
               </td>
               {/* 创建时间 */}
               <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                {new Date(task.created_at).toLocaleDateString()}
+                {(() => { const d = new Date(task.created_at); return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}` })()}
               </td>
               {/* 操作 */}
               <td className="px-4 py-3">

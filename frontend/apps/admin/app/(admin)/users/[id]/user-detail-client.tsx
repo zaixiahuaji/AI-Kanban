@@ -33,15 +33,14 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
   const t = useTranslations('admin.users')
   const tc = useTranslations('admin.common')
 
-  const formatDate = (dateStr: string) => {
+  const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr)
-    return date.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    const h = String(date.getHours()).padStart(2, '0')
+    const min = String(date.getMinutes()).padStart(2, '0')
+    return `${y}/${m}/${d} ${h}:${min}`
   }
 
   const stats = [
@@ -96,12 +95,12 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
           </div>
           <div>
             <div className="text-xs text-gray-500">{t('dateJoined')}</div>
-            <div className="mt-1 text-gray-900">{formatDate(user.date_joined)}</div>
+            <div className="mt-1 text-gray-900">{formatDateTime(user.date_joined)}</div>
           </div>
           <div>
             <div className="text-xs text-gray-500">{t('lastLogin')}</div>
             <div className="mt-1 text-gray-900">
-              {user.last_login ? formatDate(user.last_login) : t('never')}
+              {user.last_login ? formatDateTime(user.last_login) : t('never')}
             </div>
           </div>
         </div>
@@ -141,7 +140,7 @@ export function UserDetailClient({ user }: UserDetailClientProps) {
                     <td className="px-4 py-2 text-gray-900">{task.title}</td>
                     <td className="px-4 py-2 text-gray-600">{task.status}</td>
                     <td className="px-4 py-2 text-gray-600">{task.priority}</td>
-                    <td className="px-4 py-2 text-gray-600">{formatDate(task.created_at)}</td>
+                    <td className="px-4 py-2 text-gray-600">{formatDateTime(task.created_at)}</td>
                   </tr>
                 ))}
               </tbody>
