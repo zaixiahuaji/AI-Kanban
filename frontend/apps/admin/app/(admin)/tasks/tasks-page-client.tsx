@@ -3,7 +3,7 @@
 import { deleteTask, getAdminTasks } from '@/actions/admin-tasks-actions'
 import { TaskTable, type TaskItem } from '@/components/task-table'
 import { useTranslations } from 'next-intl'
-import { useCallback, useEffect, useState, useTransition } from 'react'
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 
 interface TaskPageData {
   count: number
@@ -39,9 +39,14 @@ export function TasksPageClient({ initialData }: { initialData: TaskPageData | n
     fetchTasks()
   }, [search, statusFilter, priorityFilter])
 
-  // 页码变化时刷新
+  // 页码变化时刷新（跳过首次挂载，SSR 已加载第 1 页）
+  const isFirstMount = useRef(true)
   useEffect(() => {
-    if (page > 1) fetchTasks()
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      return
+    }
+    fetchTasks()
   }, [page])
 
   const handleDelete = (id: string) => {
