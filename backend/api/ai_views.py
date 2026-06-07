@@ -197,10 +197,25 @@ class AIChatView(APIView):
                             content=assistant_content or "正在处理操作...",
                         )
 
-                    # 将 assistant 回复加入 messages
-                    messages.append(
-                        {"role": "assistant", "content": current_text or ""}
-                    )
+                    # 将 assistant 回复加入 messages（必须包含 tool_calls）
+                    assistant_message = {
+                        "role": "assistant",
+                        "content": current_text or None,
+                        "tool_calls": [
+                            {
+                                "id": current_tool_calls[idx]["id"],
+                                "type": "function",
+                                "function": {
+                                    "name": current_tool_calls[idx]["name"],
+                                    "arguments": current_tool_calls[idx][
+                                        "arguments"
+                                    ],
+                                },
+                            }
+                            for idx in sorted(current_tool_calls.keys())
+                        ],
+                    }
+                    messages.append(assistant_message)
 
                     for idx in sorted(current_tool_calls.keys()):
                         tc_data = current_tool_calls[idx]
