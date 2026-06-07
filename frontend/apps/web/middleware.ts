@@ -6,10 +6,9 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
-    cookieName: 'admin-nextauth.session-token',
   })
 
-  if (!token || !token.isStaff) {
+  if (!token) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -17,5 +16,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!login|api/auth|_next/static|_next/image|favicon.ico).*)'],
+  // 匹配所有路径，排除公开页面和 Next.js 内部资源
+  matcher: ['/((?!login|register|api/auth|_next/static|_next/image|favicon.ico).*)'],
 }

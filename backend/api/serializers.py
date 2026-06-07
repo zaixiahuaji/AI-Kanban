@@ -16,7 +16,7 @@ User = get_user_model()
 class UserCurrentSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["username", "first_name", "last_name"]
+        fields = ["username", "first_name", "last_name", "is_staff"]
 
 
 class UserCurrentErrorSerializer(serializers.Serializer):
