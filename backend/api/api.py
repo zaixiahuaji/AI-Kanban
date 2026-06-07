@@ -243,10 +243,9 @@ class TaskViewSet(
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
 
     def get_queryset(self):
-        qs = Task.objects.active()
-        if not self.request.user.is_staff:
-            qs = qs.filter(created_by=self.request.user)
-        return qs.select_related("created_by").prefetch_related("tags")
+        return Task.objects.active().filter(
+            created_by=self.request.user
+        ).select_related("created_by").prefetch_related("tags")
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -309,9 +308,7 @@ class TaskViewSet(
 
     def _get_deleted_object(self):
         """获取已删除的任务对象（含权限检查）"""
-        qs = Task.objects.all()
-        if not self.request.user.is_staff:
-            qs = qs.filter(created_by=self.request.user)
+        qs = Task.objects.all().filter(created_by=self.request.user)
         obj = qs.get(pk=self.kwargs["pk"])
         self.check_object_permissions(self.request, obj)
         return obj
@@ -319,9 +316,7 @@ class TaskViewSet(
     @action(detail=False, methods=["get"], url_path="trash")
     def trash(self, request):
         """回收站列表"""
-        qs = Task.objects.deleted()
-        if not request.user.is_staff:
-            qs = qs.filter(created_by=request.user)
+        qs = Task.objects.deleted().filter(created_by=request.user)
         qs = qs.select_related("created_by").prefetch_related("tags")
         page = self.paginate_queryset(qs)
         if page is not None:

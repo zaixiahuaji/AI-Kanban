@@ -176,9 +176,9 @@ class AdminUserListView(ListAPIView):
         elif status_filter == "disabled":
             qs = qs.filter(is_active=False)
         return qs.annotate(
-            task_count=Count("tasks", filter=Q(tasks__is_deleted=False)),
-            tag_count=Count("tags"),
-            column_count=Count("board_columns"),
+            task_count=Count("tasks", filter=Q(tasks__is_deleted=False), distinct=True),
+            tag_count=Count("tags", distinct=True),
+            column_count=Count("board_columns", distinct=True),
         ).order_by("-date_joined")
 
 
@@ -195,9 +195,9 @@ class AdminUserDetailView(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return User.objects.annotate(
-            task_count=Count("tasks", filter=Q(tasks__is_deleted=False)),
-            tag_count=Count("tags"),
-            column_count=Count("board_columns"),
+            task_count=Count("tasks", filter=Q(tasks__is_deleted=False), distinct=True),
+            tag_count=Count("tags", distinct=True),
+            column_count=Count("board_columns", distinct=True),
         )
 
     @extend_schema(

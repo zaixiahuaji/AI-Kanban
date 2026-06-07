@@ -51,8 +51,8 @@ def test_task_list_only_mine(api_client, regular_user, admin_user):
 
 
 @pytest.mark.django_db
-def test_task_admin_sees_all(api_client, admin_user, regular_user):
-    """测试管理员看到所有任务"""
+def test_task_admin_sees_own_only(api_client, admin_user, regular_user):
+    """测试管理员在 web 端只能看到自己的任务（管理端通过 /api/admin/ 查看）"""
     Task.objects.create(title="用户任务", created_by=regular_user)
     Task.objects.create(title="管理员任务", created_by=admin_user)
 
@@ -60,8 +60,8 @@ def test_task_admin_sees_all(api_client, admin_user, regular_user):
     response = api_client.get("/api/tasks/")
     assert response.status_code == 200
     titles = [t["title"] for t in response.data["results"]]
-    assert "用户任务" in titles
     assert "管理员任务" in titles
+    assert "用户任务" not in titles
 
 
 @pytest.mark.django_db
