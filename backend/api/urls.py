@@ -14,6 +14,14 @@ from .admin_views import (
     AdminUserListView,
     HealthCheckView,
 )
+from .ai_views import (
+    AIActionCancelView,
+    AIActionConfirmView,
+    AIActionUndoView,
+    AIChatHistoryView,
+    AIChatView,
+    AIUsageView,
+)
 from .api import BoardColumnViewSet, SendCodeView, StatisticsView, TagViewSet, TaskViewSet, UserViewSet
 
 router = routers.DefaultRouter()
@@ -38,6 +46,13 @@ urlpatterns = [
     path("api/admin/tasks/", AdminTaskListView.as_view(), name="admin-tasks"),
     path("api/admin/tasks/<uuid:pk>/", AdminTaskDetailView.as_view(), name="admin-task-detail"),
     path("api/admin/health/", HealthCheckView.as_view(), name="admin-health"),
+    # AI 助手 API
+    path("api/ai/chat/history/", AIChatHistoryView.as_view(), name="ai-chat-history"),
+    path("api/ai/chat/", AIChatView.as_view(), name="ai-chat"),
+    path("api/ai/actions/<uuid:pk>/confirm/", AIActionConfirmView.as_view(), name="ai-action-confirm"),
+    path("api/ai/actions/<uuid:pk>/cancel/", AIActionCancelView.as_view(), name="ai-action-cancel"),
+    path("api/ai/actions/<uuid:pk>/undo/", AIActionUndoView.as_view(), name="ai-action-undo"),
+    path("api/ai/usage/", AIUsageView.as_view(), name="ai-usage"),
     path("api/", include(router.urls)),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
