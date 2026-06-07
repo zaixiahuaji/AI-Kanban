@@ -187,3 +187,96 @@ class ErrorLog(models.Model):
 
     def __str__(self):
         return f"{self.method} {self.path} - {self.status_code}"
+
+
+class ChatMessage(models.Model):
+    """AI 助手聊天记录"""
+
+    ROLE_CHOICES = [
+        ("user", "User"),
+        ("assistant", "Assistant"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="chat_messages",
+        verbose_name=_("user"),
+    )
+    role = models.CharField(_("role"), max_length=10, choices=ROLE_CHOICES)
+    content = models.TextField(_("content"))
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        db_table = "chat_messages"
+        verbose_name = _("chat message")
+        verbose_name_plural = _("chat messages")
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["user", "-created_at"], name="idx_chat_user_created"),
+        ]
+
+    def __str__(self):
+        return f"[{self.role}] {self.content[:50]}"
+
+
+class AIAction(models.Model):
+    """AI 工具调用操作记录"""
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("executed", "Executed"),
+        ("confirmed", "Confirmed"),
+        ("cancelled", "Cancelled"),
+        ("undone", "Undone"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    message = models.ForeignKey(
+        ChatMessage,
+        on_delete=models.CASCADE,
+        related_name="actions",
+        verbose_name=_("message"),
+    )
+    tool_name = models.CharField(_("tool name"), max_length=50)
+    tool_args = models.JSONField(_("tool args"))
+    status = models.CharField(_("status"), max_length=10, choices=STATUS_CHOICES, default="pending")
+    result = models.JSONField(_("result"), null=True, blank=True)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        db_table = "ai_actions"
+        verbose_name = _("AI action")
+        verbose_name_plural = _("AI actions")
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["message"], name="idx_ai_action_message"),
+        ]
+
+    def __str__(self):
+        return f"{self.tool_name} ({self.status})"
+
+
+class DailyUsage(models.Model):
+    """AI 助手每日使用额度"""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="ai_daily_usages",
+        verbose_name=_("user"),
+    )
+    date = models.DateField(_("date"))
+    count = models.IntegerField(_("count"), default=0)
+
+    class Meta:
+        db_table = "daily_usages"
+        verbose_name = _("daily usage")
+        verbose_name_plural = _("daily usages")
+        constraints = [
+            models.UniqueConstraint(fields=["user", "date"], name="uq_daily_usage_user_date"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.date}: {self.count}"
