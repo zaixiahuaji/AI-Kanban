@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { cancelAction, confirmAction, getChatHistory, getUsage, undoAction } from '@/actions/ai-actions'
 import { getSession } from 'next-auth/react'
@@ -17,6 +17,8 @@ export function AIAssistantPanel() {
   const [streamingText, setStreamingText] = useState('')
   const [usage, setUsage] = useState<DailyUsage>({ used: 0, limit: 50, remaining: 50 })
   const [isStreaming, setIsStreaming] = useState(false)
+  const idCounter = useRef(0)
+  const nextId = (prefix: string) => `${prefix}-${++idCounter.current}`
 
   // 加载历史和额度
   useEffect(() => {
@@ -53,7 +55,7 @@ export function AIAssistantPanel() {
 
       // 先添加用户消息到列表
       const tempUserMsg: ChatMessage = {
-        id: `temp-${Date.now()}`,
+        id: nextId('temp'),
         role: 'user',
         content,
         created_at: new Date().toISOString(),
@@ -76,7 +78,7 @@ export function AIAssistantPanel() {
               setStreamingText((prev) => prev + event.content)
               break
             case 'action': {
-              const tempAssistantId = `temp-assistant-${Date.now()}`
+              const tempAssistantId = nextId('assistant')
               const newAction: AIActionType = {
                 id: event.action_id,
                 tool_name: event.tool_name,
@@ -102,7 +104,7 @@ export function AIAssistantPanel() {
             case 'error':
               setStreamingText((currentText) => {
                 const errorMsg: ChatMessage = {
-                  id: `error-${Date.now()}`,
+                  id: nextId('error'),
                   role: 'assistant',
                   content: `⚠️ ${event.content}`,
                   created_at: new Date().toISOString(),
@@ -117,7 +119,7 @@ export function AIAssistantPanel() {
               setStreamingText((currentText) => {
                 if (currentText) {
                   const assistantMsg: ChatMessage = {
-                    id: `assistant-${Date.now()}`,
+                    id: nextId('assistant'),
                     role: 'assistant',
                     content: currentText,
                     created_at: new Date().toISOString(),

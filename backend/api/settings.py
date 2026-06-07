@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "corsheaders",
     "drf_spectacular",
     "api",
 ]
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -190,3 +192,13 @@ AI_DAILY_LIMIT = int(environ.get("AI_DAILY_LIMIT", "50"))
 AI_CHAT_HISTORY_LIMIT = 20
 AI_TOOL_MAX_ITERATIONS = 5
 AI_TOOL_TIMEOUT = 30  # seconds
+
+######################################################################
+# CORS
+######################################################################
+CORS_ALLOW_ALL_ORIGINS = environ.get("CORS_ALLOW_ALL_ORIGINS", "true").lower() == "true"
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+]
+CORS_ALLOW_CREDENTIALS = True
