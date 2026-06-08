@@ -53,7 +53,7 @@ export function KanbanRow({
         </div>
       )}
       <SortableContext
-        items={columns.map((col) => `col-${col.slug}`)}
+        items={columns.map((col) => `col-${rowKey}-${col.slug}`)}
         strategy={horizontalListSortingStrategy}
       >
         <div className="flex gap-3 items-start">

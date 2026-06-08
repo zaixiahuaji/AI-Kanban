@@ -53,6 +53,7 @@ export function KanbanColumn({
   const { setNodeRef: setDropRef, isOver } = useDroppable({ id: droppableId })
 
   // 列拖动排序（列头作为拖拽手柄）
+  // ID 包含 rowKey 确保跨行唯一，避免多行同 ID 导致的排序冲突
   const {
     attributes: colAttrs,
     listeners: colListeners,
@@ -61,8 +62,8 @@ export function KanbanColumn({
     transition: colTransition,
     isDragging: isColDragging,
   } = useSortable({
-    id: `col-${id}`,
-    data: { type: 'column' },
+    id: `col-${rowKey}-${id}`,
+    data: { type: 'column', slug: id },
   })
 
   const colStyle = {

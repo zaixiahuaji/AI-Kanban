@@ -135,8 +135,8 @@ export function KanbanBoard({
 
       // 列拖拽排序
       if (active.data.current?.type === 'column') {
-        const activeSlug = getColumnSlug(active.id as string)
-        const overSlug = getColumnSlug(over.id as string)
+        const activeSlug = active.data.current?.slug as string
+        const overSlug = (over.data.current as { slug?: string })?.slug
         if (!activeSlug || !overSlug || activeSlug === overSlug) return
 
         const oldIndex = columns.findIndex((c) => c.slug === activeSlug)
