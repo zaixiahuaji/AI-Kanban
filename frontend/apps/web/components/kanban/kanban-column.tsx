@@ -3,8 +3,10 @@
 import { useDroppable } from '@dnd-kit/core'
 import {
   SortableContext,
+  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useTranslations } from 'next-intl'
 
 import { TaskCard } from './task-card'
@@ -45,19 +47,45 @@ export function KanbanColumn({
   onDelete,
 }: KanbanColumnProps) {
   const t = useTranslations('kanban')
+
+  // 任务放置目标
   const droppableId = makeDroppableId(rowKey, id)
-  const { setNodeRef, isOver } = useDroppable({ id: droppableId })
+  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: droppableId })
+
+  // 列拖动排序（列头作为拖拽手柄）
+  const {
+    attributes: colAttrs,
+    listeners: colListeners,
+    setNodeRef: setSortableRef,
+    transform: colTransform,
+    transition: colTransition,
+    isDragging: isColDragging,
+  } = useSortable({
+    id: `col-${id}`,
+    data: { type: 'column' },
+  })
+
+  const colStyle = {
+    transform: CSS.Transform.toString(colTransform),
+    transition: colTransition,
+    opacity: isColDragging ? 0.4 : 1,
+  }
 
   return (
-    <div className="w-[240px] flex-shrink-0 flex flex-col rounded-lg bg-gray-100/50">
+    <div
+      ref={setSortableRef}
+      style={colStyle}
+      className="w-[240px] flex-shrink-0 flex flex-col rounded-lg bg-gray-100/50"
+    >
       <KanbanColumnHeader
         title={title}
         count={tasks.length}
         onRename={onRename}
         onDelete={onDelete}
+        dragHandleProps={{ ...colAttrs, ...colListeners }}
       />
       <div
-        ref={setNodeRef}
+        ref={setDropRef}
         className={`flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-200px)] p-2 transition-colors ${isOver ? 'bg-blue-50/50' : ''}`}
       >
         <SortableContext

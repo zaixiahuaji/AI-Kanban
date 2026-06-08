@@ -12,6 +12,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core'
+import { arrayMove } from '@dnd-kit/sortable'
 import { useTranslations } from 'next-intl'
 
 import {
@@ -27,7 +28,7 @@ import { KanbanFilters } from './kanban-filters'
 import { TaskCard } from './task-card'
 import { ColumnManageModal } from './column-manage-modal'
 import { updateTask } from '@/actions/task-actions'
-import { createColumn, updateColumn, deleteColumn } from '@/actions/column-actions'
+import { createColumn, updateColumn, deleteColumn, reorderColumns } from '@/actions/column-actions'
 
 interface KanbanBoardProps {
   initialTasks: Task[]
@@ -90,6 +91,8 @@ export function KanbanBoard({
 
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
+      // 列拖拽：不设置 activeTask
+      if (event.active.data.current?.type === 'column') return
       const task = tasks.find((t) => t.id === event.active.id)
       if (task) setActiveTask(task)
     },
@@ -114,12 +117,45 @@ export function KanbanBoard({
     [columns],
   )
 
+  // 从 sortable ID 提取列 slug（格式：col-{slug}）
+  const getColumnSlug = useCallback(
+    (sortableId: string): string | null => {
+      if (!sortableId.startsWith('col-')) return null
+      const slug = sortableId.slice(4)
+      return columns.some((c) => c.slug === slug) ? slug : null
+    },
+    [columns],
+  )
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       setActiveTask(null)
       const { active, over } = event
       if (!over) return
 
+      // 列拖拽排序
+      if (active.data.current?.type === 'column') {
+        const activeSlug = getColumnSlug(active.id as string)
+        const overSlug = getColumnSlug(over.id as string)
+        if (!activeSlug || !overSlug || activeSlug === overSlug) return
+
+        const oldIndex = columns.findIndex((c) => c.slug === activeSlug)
+        const newIndex = columns.findIndex((c) => c.slug === overSlug)
+        if (oldIndex === -1 || newIndex === -1) return
+
+        // 乐观更新
+        const reordered = arrayMove(columns, oldIndex, newIndex).map((col, i) => ({
+          ...col,
+          position: i,
+        }))
+        onColumnsChange(reordered)
+
+        // 持久化到后端
+        await reorderColumns(reordered.map((col) => ({ id: col.id, position: col.position })))
+        return
+      }
+
+      // 任务拖拽
       const taskId = active.id as string
       const task = tasks.find((t) => t.id === taskId)
       if (!task) return
@@ -177,7 +213,7 @@ export function KanbanBoard({
         // 移动失败已自动回滚
       }
     },
-    [tasks, swimlane, parseDroppableId],
+    [tasks, columns, swimlane, parseDroppableId, getColumnSlug, onColumnsChange],
   )
 
   // 列管理操作

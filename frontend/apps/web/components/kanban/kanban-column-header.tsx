@@ -8,6 +8,7 @@ interface KanbanColumnHeaderProps {
   count: number
   onRename?: () => void
   onDelete?: () => void
+  dragHandleProps?: Record<string, unknown>
 }
 
 export function KanbanColumnHeader({
@@ -15,6 +16,7 @@ export function KanbanColumnHeader({
   count,
   onRename,
   onDelete,
+  dragHandleProps,
 }: KanbanColumnHeaderProps) {
   const t = useTranslations('kanban')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -32,7 +34,10 @@ export function KanbanColumnHeader({
   }, [menuOpen])
 
   return (
-    <div className="flex items-center justify-between px-3 py-2">
+    <div
+      {...dragHandleProps}
+      className="flex items-center justify-between px-3 py-2 cursor-grab active:cursor-grabbing"
+    >
       <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
         {title}
       </h3>
