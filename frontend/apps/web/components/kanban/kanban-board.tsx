@@ -70,7 +70,7 @@ export function KanbanBoard({
   // 列拖拽时限制为水平轴移动，避免触发垂直滚动
   const columnDragModifier: Modifier = useCallback(
     ({ active, transform }) => {
-      if (active.data.current?.type === 'column') {
+      if (active?.data.current?.type === 'column') {
         return { ...transform, y: 0 }
       }
       return transform
