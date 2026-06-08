@@ -1,17 +1,17 @@
 import { z } from 'zod'
 
 const loginFormSchema = z.object({
-  username: z.string().min(6),
-  password: z.string().min(8)
+  username: z.string(),
+  password: z.string()
 })
 
 const registerFormSchema = z
   .object({
-    username: z.string().min(6),
+    username: z.string(),
     email: z.string().email(),
     code: z.string().length(6),
-    password: z.string().min(8),
-    passwordRetype: z.string().min(8)
+    password: z.string(),
+    passwordRetype: z.string()
   })
   .refine((data) => data.password === data.passwordRetype, {
     message: 'Passwords are not matching',
@@ -25,8 +25,8 @@ const profileFormSchema = z.object({
 
 const deleteAccountFormSchema = z
   .object({
-    username: z.string().min(6),
-    usernameCurrent: z.string().min(6).optional()
+    username: z.string(),
+    usernameCurrent: z.string().optional()
   })
   .passthrough()
   .refine((data) => data.username === data.usernameCurrent, {
@@ -36,9 +36,9 @@ const deleteAccountFormSchema = z
 
 const changePasswordFormSchema = z
   .object({
-    password: z.string().min(8),
-    passwordNew: z.string().min(8),
-    passwordRetype: z.string().min(8)
+    password: z.string(),
+    passwordNew: z.string(),
+    passwordRetype: z.string()
   })
   .refine((data) => data.passwordNew !== data.password, {
     message: 'Both new and current passwords are same',
