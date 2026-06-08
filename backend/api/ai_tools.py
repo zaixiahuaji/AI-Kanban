@@ -514,9 +514,14 @@ def execute_delete_task(user, tool_args):
 
 
 def execute_batch_move_tasks(user, tool_args):
-    """确认后：批量移动（从标题重新解析，不依赖预解析结果）"""
+    """确认后：批量移动（从标题重新解析，target_column 需转换为 slug）"""
     titles = tool_args.get("task_titles", [])
-    target = tool_args.get("target_column", "")
+    target_name = tool_args.get("target_column", "")
+    # AI 传入的是列名，需要转换为 slug
+    col, err = _resolve_column(user, target_name)
+    if err:
+        return False, {"error": err}
+    target_slug = col.slug
     moved = []
     for title in titles:
         task = (
@@ -525,10 +530,11 @@ def execute_batch_move_tasks(user, tool_args):
             .first()
         )
         if task:
-            task.status = target
+            previous_status = task.status
+            task.status = target_slug
             task.save(update_fields=["status", "modified_at"])
-            moved.append(task.title)
-    return True, {"moved": moved, "target_column": target}
+            moved.append({"title": task.title, "previous_status": previous_status})
+    return True, {"moved": moved, "target_column": target_slug}
 
 
 def execute_batch_delete_tasks(user, tool_args):
@@ -660,10 +666,28 @@ def undo_batch_delete_tasks(user, result_data):
 
 
 def undo_batch_move_tasks(user, result_data):
-    """撤销批量移动：从 result 中没有 previous_status，需要用 tool_args"""
-    # batch_move 的 undo 需要从 tool_args 获取原始信息
-    # 由于 undo handler 统一接收 tool_args，这里需要额外处理
-    return False, {"error": "批量移动暂不支持撤销"}
+    """撤销批量移动：把每个任务移回原列"""
+    moved = result_data.get("moved", [])
+    if not moved:
+        return False, {"error": "无法撤销：缺少移动记录"}
+    restored = []
+    for item in moved:
+        task_title = item.get("title", "")
+        previous_status = item.get("previous_status", "")
+        if not task_title or not previous_status:
+            continue
+        task = (
+            Task.objects.active()
+            .filter(created_by=user, title__icontains=task_title)
+            .first()
+        )
+        if task:
+            task.status = previous_status
+            task.save(update_fields=["status", "modified_at"])
+            restored.append(task.title)
+    if not restored:
+        return False, {"error": "未找到可恢复的任务"}
+    return True, {"undone": True, "restored": restored}
 
 
 def undo_delete_column(user, result_data):
