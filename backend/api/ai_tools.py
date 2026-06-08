@@ -688,6 +688,9 @@ def undo_delete_column(user, result_data):
         "moved_to": first_col.name,
         "note": f"列「{deleted_column_name}」已被删除，任务已恢复到「{first_col.name}」",
     }
+
+
+UNDO_HANDLERS = {
     "create_task": undo_create_task,
     "move_task": undo_move_task,
     "create_column": undo_create_column,
