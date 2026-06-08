@@ -21,6 +21,7 @@ interface KanbanRowProps {
   color?: string
   tasks: Task[]
   columns: Column[]
+  enableColumnDrag?: boolean
   onTaskClick?: (task: Task) => void
   onRenameColumn?: (columnId: string, currentName: string) => void
   onDeleteColumn?: (columnId: string) => void
@@ -33,11 +34,42 @@ export function KanbanRow({
   color,
   tasks,
   columns,
+  enableColumnDrag = true,
   onTaskClick,
   onRenameColumn,
   onDeleteColumn,
   onAddColumn,
 }: KanbanRowProps) {
+  const columnItems = columns.map((col) => `col-${col.slug}`)
+
+  const columnList = (
+    <div className="flex gap-3 items-start">
+      {columns.map((col) => (
+        <KanbanColumn
+          key={col.slug}
+          id={col.slug}
+          rowKey={rowKey}
+          title={col.name}
+          draggable={enableColumnDrag}
+          tasks={tasks.filter((task) => task.status === col.slug)}
+          onTaskClick={onTaskClick}
+          onRename={onRenameColumn ? () => onRenameColumn(col.id, col.name) : undefined}
+          onDelete={onDeleteColumn ? () => onDeleteColumn(col.id) : undefined}
+        />
+      ))}
+      {/* 添加列按钮 */}
+      {onAddColumn && (
+        <button
+          type="button"
+          onClick={onAddColumn}
+          className="self-start mt-0 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-xl text-gray-400 transition-colors hover:border-gray-400 hover:text-gray-500"
+        >
+          +
+        </button>
+      )}
+    </div>
+  )
+
   return (
     <div className="mb-4">
       {label && (
@@ -52,35 +84,13 @@ export function KanbanRow({
           <span className="text-xs text-gray-400">({tasks.length})</span>
         </div>
       )}
-      <SortableContext
-        items={columns.map((col) => `col-${col.slug}`)}
-        strategy={horizontalListSortingStrategy}
-      >
-        <div className="flex gap-3 items-start">
-          {columns.map((col) => (
-            <KanbanColumn
-              key={col.slug}
-              id={col.slug}
-              rowKey={rowKey}
-              title={col.name}
-              tasks={tasks.filter((task) => task.status === col.slug)}
-              onTaskClick={onTaskClick}
-              onRename={onRenameColumn ? () => onRenameColumn(col.id, col.name) : undefined}
-              onDelete={onDeleteColumn ? () => onDeleteColumn(col.id) : undefined}
-            />
-          ))}
-          {/* 添加列按钮 */}
-          {onAddColumn && (
-            <button
-              type="button"
-              onClick={onAddColumn}
-              className="self-start mt-0 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-xl text-gray-400 transition-colors hover:border-gray-400 hover:text-gray-500"
-            >
-              +
-            </button>
-          )}
-        </div>
-      </SortableContext>
+      {enableColumnDrag ? (
+        <SortableContext items={columnItems} strategy={horizontalListSortingStrategy}>
+          {columnList}
+        </SortableContext>
+      ) : (
+        columnList
+      )}
     </div>
   )
 }
