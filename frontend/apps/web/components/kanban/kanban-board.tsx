@@ -9,6 +9,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core'
@@ -64,6 +65,20 @@ export function KanbanBoard({
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor),
+  )
+
+  // 自定义碰撞检测：列拖拽时只考虑列 sortable 节点，避免任务 droppable 拦截
+  const collisionDetection: CollisionDetection = useCallback(
+    (args) => {
+      if (args.active.data.current?.type === 'column') {
+        const filtered = args.droppableContainers.filter(
+          (container) => (container.id as string).startsWith('col-'),
+        )
+        return closestCorners({ ...args, droppableContainers: filtered })
+      }
+      return closestCorners(args)
+    },
+    [],
   )
 
   // 当父组件刷新任务列表时，同步到内部状态
@@ -277,7 +292,7 @@ export function KanbanBoard({
       {mounted ? (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={collisionDetection}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
