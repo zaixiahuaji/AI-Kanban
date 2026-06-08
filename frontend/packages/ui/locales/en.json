@@ -183,7 +183,9 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "undone": "Undone",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "clearHistory": "Clear History",
+    "clearHistoryConfirm": "Clear all chat history?"
   },
   "admin": {
     "sidebar": {

@@ -183,7 +183,9 @@
     "confirm": "确认",
     "cancel": "取消",
     "undone": "已撤销",
-    "cancelled": "已取消"
+    "cancelled": "已取消",
+    "clearHistory": "清空记录",
+    "clearHistoryConfirm": "确认清空所有聊天记录？"
   },
   "admin": {
     "sidebar": {

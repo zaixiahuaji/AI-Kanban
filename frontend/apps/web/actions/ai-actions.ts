@@ -57,3 +57,7 @@ export async function getUsage(): Promise<
 > {
   return aiFetch('/api/ai/usage/') as Promise<typeof aiFetch>
 }
+
+export async function clearChatHistory() {
+  return aiFetch('/api/ai/chat/history/', { method: 'DELETE' })
+}

@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { cancelAction, confirmAction, getChatHistory, getUsage, undoAction } from '@/actions/ai-actions'
+import { cancelAction, clearChatHistory, confirmAction, getChatHistory, getUsage, undoAction } from '@/actions/ai-actions'
 import { getSession } from 'next-auth/react'
 import type { AIAction as AIActionType, ChatMessage, DailyUsage } from '@/lib/ai-types'
 import { streamChat } from '@/lib/ai-sse'
@@ -174,11 +174,34 @@ export function AIAssistantPanel() {
     }
   }, [updateActionInMessages])
 
+  const handleClearHistory = useCallback(async () => {
+    const res = await clearChatHistory()
+    if (res.success) {
+      setMessages([])
+      getUsage().then((r) => {
+        if (r.success && r.data) setUsage(r.data)
+      })
+    }
+  }, [])
+
   return (
     <div className="flex h-full flex-col border-l border-gray-200 bg-white">
       {/* 头部 */}
       <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2.5">
         <span className="text-sm font-medium text-gray-900">✨ {t('title')}</span>
+        {messages.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm(t('clearHistoryConfirm'))) {
+                handleClearHistory()
+              }
+            }}
+            className="rounded px-2 py-1 text-xs text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+          >
+            {t('clearHistory')}
+          </button>
+        )}
       </div>
 
       {/* 消息列表 */}

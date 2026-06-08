@@ -59,7 +59,7 @@ def _build_messages(user, user_content):
 
 
 class AIChatHistoryView(APIView):
-    """获取聊天历史"""
+    """获取/清空聊天历史"""
 
     permission_classes = [IsAuthenticated]
 
@@ -75,6 +75,15 @@ class AIChatHistoryView(APIView):
         )
         serializer = ChatMessageSerializer(reversed(messages), many=True)
         return Response({"messages": serializer.data})
+
+    @extend_schema(
+        operation_id="ai_chat_history_clear",
+        responses={200: None},
+    )
+    def delete(self, request):
+        """清空当前用户的聊天历史"""
+        count, _ = ChatMessage.objects.filter(user=request.user).delete()
+        return Response({"success": True, "deleted": count})
 
 
 class AIChatView(APIView):
