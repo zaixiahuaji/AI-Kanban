@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -52,6 +52,8 @@ export function KanbanBoard({
   const [search, setSearch] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const columnDraggingRef = useRef(false)
 
   // 列管理弹窗状态
   const [columnModal, setColumnModal] = useState<{
@@ -91,8 +93,14 @@ export function KanbanBoard({
 
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
-      // 列拖拽：不设置 activeTask
-      if (event.active.data.current?.type === 'column') return
+      // 列拖拽：锁定滚动容器
+      if (event.active.data.current?.type === 'column') {
+        columnDraggingRef.current = true
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.style.overflowY = 'hidden'
+        }
+        return
+      }
       const task = tasks.find((t) => t.id === event.active.id)
       if (task) setActiveTask(task)
     },
@@ -130,6 +138,13 @@ export function KanbanBoard({
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       setActiveTask(null)
+      // 解锁滚动容器
+      if (columnDraggingRef.current) {
+        columnDraggingRef.current = false
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.style.overflowY = 'auto'
+        }
+      }
       const { active, over } = event
       if (!over) return
 
@@ -281,7 +296,7 @@ export function KanbanBoard({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
+          <div ref={scrollContainerRef} className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
             <div style={{ minWidth: 'max-content' }}>
               {groups.map((group) => (
                 <KanbanRow
