@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 
+import { getColumns } from '@/actions/column-actions'
 import { getTasks } from '@/actions/task-actions'
 import { AIAssistantPanel } from '@/components/ai/ai-assistant-panel'
 import { KanbanBoard } from '@/components/kanban/kanban-board'
@@ -24,9 +25,16 @@ export function KanbanPageClient({ initialTasks, tags, columns }: KanbanPageClie
   const [showAI, setShowAI] = useState(false)
 
   const refreshTasks = async () => {
-    const result = await getTasks()
-    if (result.success) {
-      setTasks(result.data?.results || [])
+    const [taskResult, colResult] = await Promise.all([
+      getTasks(),
+      getColumns(),
+    ])
+    if (taskResult.success) {
+      setTasks(taskResult.data?.results || [])
+    }
+    if (colResult.success && colResult.data) {
+      const cols = Array.isArray(colResult.data) ? colResult.data : (colResult.data?.results || [])
+      setColumnList(cols)
     }
   }
 
