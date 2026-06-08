@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -11,7 +11,6 @@ import {
   useSensors,
   type DragStartEvent,
   type DragEndEvent,
-  type Modifier,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { useTranslations } from 'next-intl'
@@ -66,19 +65,6 @@ export function KanbanBoard({
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor),
   )
-
-  // 列拖拽时限制为水平轴移动，避免触发垂直滚动
-  const columnDragModifier: Modifier = useCallback(
-    ({ active, transform }) => {
-      if (active?.data.current?.type === 'column') {
-        return { ...transform, y: 0 }
-      }
-      return transform
-    },
-    [],
-  )
-
-  const modifiers = useMemo(() => [columnDragModifier], [columnDragModifier])
 
   // 当父组件刷新任务列表时，同步到内部状态
   useEffect(() => {
@@ -292,13 +278,12 @@ export function KanbanBoard({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
-          modifiers={modifiers}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
           <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
             <div style={{ minWidth: 'max-content' }}>
-              {groups.map((group, groupIdx) => (
+              {groups.map((group) => (
                 <KanbanRow
                   key={group.key}
                   rowKey={group.key}
@@ -306,7 +291,6 @@ export function KanbanBoard({
                   color={group.color}
                   tasks={group.tasks}
                   columns={columns}
-                  enableColumnDrag={groupIdx === 0}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   onTaskClick={onTaskClick as any}
                   onRenameColumn={handleRenameColumn}

@@ -27,7 +27,6 @@ interface KanbanColumnProps {
   rowKey: string
   title: string
   tasks: Task[]
-  draggable?: boolean
   onTaskClick?: (task: Task) => void
   onRename?: () => void
   onDelete?: () => void
@@ -43,7 +42,6 @@ export function KanbanColumn({
   rowKey,
   title,
   tasks,
-  draggable = true,
   onTaskClick,
   onRename,
   onDelete,
@@ -54,22 +52,28 @@ export function KanbanColumn({
   const droppableId = makeDroppableId(rowKey, id)
   const { setNodeRef: setDropRef, isOver } = useDroppable({ id: droppableId })
 
-  // 列拖动排序（仅 draggable=true 时启用）
-  const sortable = useSortable({
+  // 列拖动排序（列头作为拖拽手柄）
+  const {
+    attributes: colAttrs,
+    listeners: colListeners,
+    setNodeRef: setSortableRef,
+    transform: colTransform,
+    transition: colTransition,
+    isDragging: isColDragging,
+  } = useSortable({
     id: `col-${id}`,
     data: { type: 'column' },
-    disabled: !draggable,
   })
 
-  const colStyle = draggable ? {
-    transform: CSS.Transform.toString(sortable.transform),
-    transition: sortable.transition,
-    opacity: sortable.isDragging ? 0.4 : 1,
-  } : undefined
+  const colStyle = {
+    transform: CSS.Transform.toString(colTransform),
+    transition: colTransition,
+    opacity: isColDragging ? 0.4 : 1,
+  }
 
   return (
     <div
-      ref={sortable.setNodeRef}
+      ref={setSortableRef}
       style={colStyle}
       className="w-[240px] flex-shrink-0 flex flex-col rounded-lg bg-gray-100/50"
     >
@@ -78,7 +82,7 @@ export function KanbanColumn({
         count={tasks.length}
         onRename={onRename}
         onDelete={onDelete}
-        dragHandleProps={draggable ? { ...sortable.attributes, ...sortable.listeners } : undefined}
+        dragHandleProps={{ ...colAttrs, ...colListeners }}
       />
       <div
         ref={setDropRef}
