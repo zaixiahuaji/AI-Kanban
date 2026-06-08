@@ -52,7 +52,6 @@ export function KanbanBoard({
   const [search, setSearch] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
   const [activeTask, setActiveTask] = useState<Task | null>(null)
-  const [isColumnDragging, setIsColumnDragging] = useState(false)
 
   // 列管理弹窗状态
   const [columnModal, setColumnModal] = useState<{
@@ -92,11 +91,8 @@ export function KanbanBoard({
 
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
-      // 列拖拽：不设置 activeTask，禁用自动滚动
-      if (event.active.data.current?.type === 'column') {
-        setIsColumnDragging(true)
-        return
-      }
+      // 列拖拽：不设置 activeTask
+      if (event.active.data.current?.type === 'column') return
       const task = tasks.find((t) => t.id === event.active.id)
       if (task) setActiveTask(task)
     },
@@ -134,7 +130,6 @@ export function KanbanBoard({
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       setActiveTask(null)
-      setIsColumnDragging(false)
       const { active, over } = event
       if (!over) return
 
@@ -283,7 +278,6 @@ export function KanbanBoard({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
-          autoScroll={!isColumnDragging}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
