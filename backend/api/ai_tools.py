@@ -637,11 +637,64 @@ def undo_delete_task(user, result_data):
     return True, {"undone": True, "task_title": task.title}
 
 
-UNDO_HANDLERS = {
+def undo_batch_delete_tasks(user, result_data):
+    """撤销批量删除：恢复所有被软删除的任务"""
+    deleted_titles = result_data.get("deleted", [])
+    if not deleted_titles:
+        return False, {"error": "无法撤销：缺少已删除任务列表"}
+    restored = []
+    for title in deleted_titles:
+        task = (
+            Task.objects.filter(created_by=user, title__icontains=title, is_deleted=True)
+            .order_by("-modified_at")
+            .first()
+        )
+        if task:
+            task.is_deleted = False
+            task.deleted_at = None
+            task.save(update_fields=["is_deleted", "deleted_at", "modified_at"])
+            restored.append(task.title)
+    if not restored:
+        return False, {"error": "未找到可恢复的任务"}
+    return True, {"undone": True, "restored": restored}
+
+
+def undo_batch_move_tasks(user, result_data):
+    """撤销批量移动：从 result 中没有 previous_status，需要用 tool_args"""
+    # batch_move 的 undo 需要从 tool_args 获取原始信息
+    # 由于 undo handler 统一接收 tool_args，这里需要额外处理
+    return False, {"error": "批量移动暂不支持撤销"}
+
+
+def undo_delete_column(user, result_data):
+    """撤销删除列：列已被硬删除，无法恢复列本身，但可以恢复其下的软删除任务"""
+    deleted_column_name = result_data.get("deleted_column")
+    if not deleted_column_name:
+        return False, {"error": "无法撤销：缺少列名"}
+    # 列已被硬删除，恢复该列下被软删除的任务到第一列
+    first_col = BoardColumn.objects.filter(created_by=user).order_by("position").first()
+    if not first_col:
+        return False, {"error": "无法撤销：没有可用的列"}
+    restored = list(
+        Task.objects.filter(created_by=user, is_deleted=True).values_list("title", flat=True)
+    )
+    if restored:
+        Task.objects.filter(created_by=user, is_deleted=True).update(
+            is_deleted=False, deleted_at=None, status=first_col.slug
+        )
+    return True, {
+        "undone": True,
+        "restored_tasks": len(restored),
+        "moved_to": first_col.name,
+        "note": f"列「{deleted_column_name}」已被删除，任务已恢复到「{first_col.name}」",
+    }
     "create_task": undo_create_task,
     "move_task": undo_move_task,
     "create_column": undo_create_column,
     "delete_task": undo_delete_task,
+    "batch_delete_tasks": undo_batch_delete_tasks,
+    "batch_move_tasks": undo_batch_move_tasks,
+    "delete_column": undo_delete_column,
 }
 
 
