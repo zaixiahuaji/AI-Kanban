@@ -185,7 +185,10 @@
     "undone": "Undone",
     "cancelled": "Cancelled",
     "clearHistory": "Clear History",
-    "clearHistoryConfirm": "Clear all chat history?"
+    "clearHistoryConfirm": "Clear all chat history?",
+    "listening": "Listening...",
+    "micNotSupported": "Voice input is not supported in this browser",
+    "micError": "Voice recognition error, please try again"
   },
   "admin": {
     "sidebar": {

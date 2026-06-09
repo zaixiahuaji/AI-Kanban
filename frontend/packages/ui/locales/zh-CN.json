@@ -185,7 +185,10 @@
     "undone": "已撤销",
     "cancelled": "已取消",
     "clearHistory": "清空记录",
-    "clearHistoryConfirm": "确认清空所有聊天记录？"
+    "clearHistoryConfirm": "确认清空所有聊天记录？",
+    "listening": "正在聆听...",
+    "micNotSupported": "当前浏览器不支持语音输入",
+    "micError": "语音识别出错，请重试"
   },
   "admin": {
     "sidebar": {
