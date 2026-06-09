@@ -65,7 +65,10 @@ export function useSpeechRecognition({
     }
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error('Speech recognition error:', event.error)
+      // no-speech / aborted 是正常结束，不需要报错
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        console.error('Speech recognition error:', event.error)
+      }
       recognitionRef.current = null
       setIsListening(false)
       intentionalStopRef.current = false
