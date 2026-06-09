@@ -231,6 +231,41 @@ TOOL_SCHEMAS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_tag",
+            "description": "删除一个标签。这是破坏性操作，需要用户确认。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_name": {
+                        "type": "string",
+                        "description": "要删除的标签名称",
+                    },
+                },
+                "required": ["tag_name"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "batch_delete_tags",
+            "description": "批量删除多个标签。这是破坏性操作，需要用户确认。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_names": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "要删除的标签名称列表",
+                    },
+                },
+                "required": ["tag_names"],
+            },
+        },
+    },
 ]
 
 # 工具安全级别映射
@@ -246,6 +281,8 @@ TOOL_SAFETY = {
     "batch_delete_tasks": "confirm",
     "delete_column": "confirm",
     "create_tag": "auto",
+    "delete_tag": "confirm",
+    "batch_delete_tags": "confirm",
 }
 
 
@@ -514,6 +551,36 @@ def handle_create_tag(user, args):
     return True, {"tag_id": str(tag.id), "name": tag.name, "color": tag.color}
 
 
+def handle_delete_tag(user, args):
+    """删除标签（待确认）"""
+    name = args.get("tag_name", "")
+    tag = Tag.objects.filter(created_by=user, name__icontains=name).first()
+    if not tag:
+        return False, {"error": f"未找到标签「{name}」"}
+    task_count = Task.objects.active().filter(created_by=user, tags=tag).count()
+    return True, {
+        "tag_name": tag.name,
+        "tag_id": str(tag.id),
+        "task_count": task_count,
+    }
+
+
+def handle_batch_delete_tags(user, args):
+    """批量删除标签（待确认）"""
+    names = args.get("tag_names", [])
+    if not names:
+        return False, {"error": "标签列表不能为空"}
+    found = []
+    not_found = []
+    for name in names:
+        tag = Tag.objects.filter(created_by=user, name__icontains=name).first()
+        if tag:
+            found.append({"name": tag.name, "id": str(tag.id)})
+        else:
+            not_found.append(name)
+    return True, {"found": found, "not_found": not_found}
+
+
 # Handler 分发表
 TOOL_HANDLERS = {
     "list_tasks": handle_list_tasks,
@@ -527,6 +594,8 @@ TOOL_HANDLERS = {
     "batch_delete_tasks": handle_batch_delete_tasks,
     "delete_column": handle_delete_column,
     "create_tag": handle_create_tag,
+    "delete_tag": handle_delete_tag,
+    "batch_delete_tags": handle_batch_delete_tags,
 }
 
 
@@ -605,11 +674,35 @@ def execute_delete_column(user, tool_args):
     return True, {"deleted_column": col.name}
 
 
+def execute_delete_tag(user, tool_args):
+    """确认后：删除标签"""
+    tag = Tag.objects.filter(id=tool_args.get("tag_id"), created_by=user).first()
+    if not tag:
+        return False, {"error": "标签不存在"}
+    tag_name = tag.name
+    tag.delete()
+    return True, {"deleted": True, "tag_name": tag_name}
+
+
+def execute_batch_delete_tags(user, tool_args):
+    """确认后：批量删除标签"""
+    found = tool_args.get("found", [])
+    deleted = []
+    for item in found:
+        tag = Tag.objects.filter(id=item.get("id"), created_by=user).first()
+        if tag:
+            deleted.append(tag.name)
+            tag.delete()
+    return True, {"deleted": deleted}
+
+
 CONFIRM_EXECUTORS = {
     "delete_task": execute_delete_task,
     "batch_move_tasks": execute_batch_move_tasks,
     "batch_delete_tasks": execute_batch_delete_tasks,
     "delete_column": execute_delete_column,
+    "delete_tag": execute_delete_tag,
+    "batch_delete_tags": execute_batch_delete_tags,
 }
 
 
@@ -761,6 +854,35 @@ def undo_create_tag(user, tool_args):
     return True, {"undone": True, "tag_name": tag.name}
 
 
+def undo_delete_tag(user, result_data):
+    """撤销删除标签：重新创建标签"""
+    tag_name = result_data.get("tag_name")
+    if not tag_name:
+        return False, {"error": "无法撤销：缺少标签名称"}
+    tag, created = Tag.objects.get_or_create(
+        name=tag_name, created_by=user,
+        defaults={"color": "#6B7280"},
+    )
+    if not created:
+        return False, {"error": f"标签「{tag_name}」已存在"}
+    return True, {"undone": True, "tag_name": tag.name}
+
+
+def undo_batch_delete_tags(user, result_data):
+    """撤销批量删除标签：重新创建所有标签"""
+    deleted = result_data.get("deleted", [])
+    if not deleted:
+        return False, {"error": "无法撤销：缺少已删除标签列表"}
+    restored = []
+    for name in deleted:
+        tag, _ = Tag.objects.get_or_create(
+            name=name, created_by=user,
+            defaults={"color": "#6B7280"},
+        )
+        restored.append(name)
+    return True, {"undone": True, "restored": restored}
+
+
 UNDO_HANDLERS = {
     "create_task": undo_create_task,
     "move_task": undo_move_task,
@@ -770,6 +892,8 @@ UNDO_HANDLERS = {
     "batch_move_tasks": undo_batch_move_tasks,
     "delete_column": undo_delete_column,
     "create_tag": undo_create_tag,
+    "delete_tag": undo_delete_tag,
+    "batch_delete_tags": undo_batch_delete_tags,
 }
 
 
