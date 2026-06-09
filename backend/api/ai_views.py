@@ -420,7 +420,7 @@ class AIActionUndoView(APIView):
             )
 
         # undo 需要从 result 取数据的操作（包含执行结果如 previous_status、deleted 列表）
-        _undo_from_result = {"move_task", "batch_delete_tasks", "batch_move_tasks", "delete_column", "delete_task"}
+        _undo_from_result = {"move_task", "batch_delete_tasks", "batch_move_tasks", "delete_column", "delete_task", "delete_tag", "batch_delete_tags"}
         if action.tool_name in _undo_from_result:
             success, result = undo_handler(request.user, action.result or {})
         else:
