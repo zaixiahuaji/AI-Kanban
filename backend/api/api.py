@@ -171,6 +171,7 @@ class BoardColumnViewSet(
 ):
     serializer_class = BoardColumnSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    pagination_class = None  # 列数量不多，不分页
 
     def get_queryset(self):
         return BoardColumn.objects.filter(created_by=self.request.user)
@@ -242,6 +243,7 @@ class TaskViewSet(
     viewsets.GenericViewSet,
 ):
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    pagination_class = None  # 看板需要展示全部任务，不分页
 
     def get_queryset(self):
         return Task.objects.active().filter(
