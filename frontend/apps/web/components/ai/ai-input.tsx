@@ -15,17 +15,28 @@ interface AIInputProps {
 export function AIInput({ onSend, disabled, remaining }: AIInputProps) {
   const t = useTranslations('ai')
   const inputRef = useRef<HTMLInputElement>(null)
+  // 录音开始时的光标位置，用于在光标处插入文字
+  const cursorRef = useRef({ prefix: '', suffix: '' })
 
   const handleInterimResult = useCallback((text: string) => {
-    if (inputRef.current) {
-      inputRef.current.value = text
+    const input = inputRef.current
+    if (input) {
+      const { prefix, suffix } = cursorRef.current
+      input.value = prefix + text + suffix
+      input.selectionStart = prefix.length + text.length
+      input.selectionEnd = prefix.length + text.length
     }
   }, [])
 
   const handleFinalResult = useCallback((text: string) => {
-    if (inputRef.current) {
-      inputRef.current.value = text
-      inputRef.current.focus()
+    const input = inputRef.current
+    if (input) {
+      const { prefix, suffix } = cursorRef.current
+      input.value = prefix + text + suffix
+      const cursorPos = prefix.length + text.length
+      input.selectionStart = cursorPos
+      input.selectionEnd = cursorPos
+      input.focus()
     }
   }, [])
 
@@ -33,6 +44,21 @@ export function AIInput({ onSend, disabled, remaining }: AIInputProps) {
     onInterimResult: handleInterimResult,
     onFinalResult: handleFinalResult,
   })
+
+  // 包装 toggle：开始录音时记录光标位置
+  const handleMicToggle = useCallback(() => {
+    if (!isListening) {
+      const input = inputRef.current
+      if (input) {
+        const pos = input.selectionStart ?? input.value.length
+        cursorRef.current = {
+          prefix: input.value.slice(0, pos),
+          suffix: input.value.slice(pos),
+        }
+      }
+    }
+    toggle()
+  }, [isListening, toggle])
 
   // 当 disabled 变为 true（流式传输开始）时，自动停止录音
   useEffect(() => {
@@ -57,7 +83,7 @@ export function AIInput({ onSend, disabled, remaining }: AIInputProps) {
         {isSupported && (
           <button
             type="button"
-            onClick={toggle}
+            onClick={handleMicToggle}
             disabled={disabled}
             className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border transition-all ${
               isListening
