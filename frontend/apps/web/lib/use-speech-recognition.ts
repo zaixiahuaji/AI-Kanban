@@ -15,6 +15,20 @@ interface UseSpeechRecognitionReturn {
   toggle: () => void
 }
 
+// Chrome Web Speech API 会将部分敏感词替换为 ***（服务端过滤，无法通过 profanityFilter 关闭）
+// 这里维护一个映射表，在后处理阶段将常见屏蔽词还原
+const PROFANITY_MAP: Record<string, string> = {
+  '***': '弱智',
+  '****': '傻逼',
+  '**': '白痴',
+  '*****': '脑残',
+}
+
+// 检测并替换屏蔽星号为原词
+function unmaskProfanity(text: string): string {
+  return text.replace(/\*{2,}/g, (match) => PROFANITY_MAP[match] || match)
+}
+
 // 浏览器兼容：Chrome 用 webkitSpeechRecognition
 const SpeechRecognition =
   typeof window !== 'undefined'
@@ -58,10 +72,10 @@ export function useSpeechRecognition({
       }
 
       if (interimTranscript) {
-        onInterimResult?.(interimTranscript)
+        onInterimResult?.(unmaskProfanity(interimTranscript))
       }
       if (finalTranscript) {
-        onFinalResult?.(finalTranscript)
+        onFinalResult?.(unmaskProfanity(finalTranscript))
       }
     }
 
