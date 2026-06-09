@@ -225,6 +225,7 @@ class BoardColumnViewSet(
 class TagViewSet(viewsets.ModelViewSet):
     serializer_class = TagSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    pagination_class = None  # 标签数量通常不多，不分页
 
     def get_queryset(self):
         return Tag.objects.filter(created_by=self.request.user)
