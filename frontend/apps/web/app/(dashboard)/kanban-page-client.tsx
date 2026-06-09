@@ -30,11 +30,10 @@ export function KanbanPageClient({ initialTasks, tags, columns }: KanbanPageClie
       getColumns(),
     ])
     if (taskResult.success) {
-      setTasks(taskResult.data?.results || [])
+      setTasks(taskResult.data || [])
     }
     if (colResult.success && colResult.data) {
-      const cols = Array.isArray(colResult.data) ? colResult.data : (colResult.data?.results || [])
-      setColumnList(cols)
+      setColumnList(colResult.data)
     }
   }
 

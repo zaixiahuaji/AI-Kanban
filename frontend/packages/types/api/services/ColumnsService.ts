@@ -3,26 +3,19 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BoardColumn } from '../models/BoardColumn';
-import type { PaginatedBoardColumnList } from '../models/PaginatedBoardColumnList';
 import type { PatchedBoardColumn } from '../models/PatchedBoardColumn';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class ColumnsService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
-     * @param page A page number within the paginated result set.
-     * @returns PaginatedBoardColumnList
+     * @returns BoardColumn
      * @throws ApiError
      */
-    public columnsList(
-        page?: number,
-    ): CancelablePromise<PaginatedBoardColumnList> {
+    public columnsList(): CancelablePromise<Array<BoardColumn>> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/api/columns/',
-            query: {
-                'page': page,
-            },
         });
     }
     /**

@@ -29,8 +29,6 @@ export type { ErrorLog } from './models/ErrorLog';
 export type { HealthCheck } from './models/HealthCheck';
 export type { PaginatedAdminTaskListList } from './models/PaginatedAdminTaskListList';
 export type { PaginatedAdminUserListList } from './models/PaginatedAdminUserListList';
-export type { PaginatedBoardColumnList } from './models/PaginatedBoardColumnList';
-export type { PaginatedTaskListList } from './models/PaginatedTaskListList';
 export type { PatchedAdminUserUpdate } from './models/PatchedAdminUserUpdate';
 export type { PatchedBoardColumn } from './models/PatchedBoardColumn';
 export type { PatchedTag } from './models/PatchedTag';

@@ -5,22 +5,12 @@ import { authOptions } from '@/lib/auth'
 import { ApiError } from '@frontend/types/api'
 import { getServerSession } from 'next-auth'
 
-export async function getTasks(params?: {
-  status?: string
-  priority?: string
-  tag?: string
-  search?: string
-  page?: number
-  pageSize?: number
-}) {
+export async function getTasks() {
   const session = await getServerSession(authOptions)
 
   try {
     const apiClient = await getApiClient(session)
-    const response = await apiClient.tasks.tasksList({
-      page: params?.page,
-      pageSize: params?.pageSize ?? 200,
-    })
+    const response = await apiClient.tasks.tasksList()
     return { success: true, data: response }
   } catch (error) {
     if (error instanceof ApiError) {

@@ -11,11 +11,9 @@ export default async function HomePage() {
     getColumns(),
   ])
 
-  const tasks = tasksResult.success ? (tasksResult.data?.results || []) : []
-  const tags = tagsResult.success ? (tagsResult.data?.results || []) : []
-  const columns: Column[] = columnsResult.success
-    ? (Array.isArray(columnsResult.data) ? columnsResult.data : (columnsResult.data?.results || []))
-    : []
+  const tasks = tasksResult.success ? (tasksResult.data || []) : []
+  const tags = tagsResult.success ? (tagsResult.data || []) : []
+  const columns: Column[] = columnsResult.success ? (columnsResult.data || []) : []
 
   return (
     <KanbanPageClient initialTasks={tasks} tags={tags} columns={columns} />

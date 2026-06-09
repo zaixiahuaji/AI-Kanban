@@ -2,29 +2,23 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { PaginatedTaskListList } from '../models/PaginatedTaskListList';
 import type { PatchedTaskUpdate } from '../models/PatchedTaskUpdate';
 import type { TaskCreate } from '../models/TaskCreate';
 import type { TaskDetail } from '../models/TaskDetail';
+import type { TaskList } from '../models/TaskList';
 import type { TaskUpdate } from '../models/TaskUpdate';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class TasksService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
-     * @param page A page number within the paginated result set.
-     * @returns PaginatedTaskListList
+     * @returns TaskList
      * @throws ApiError
      */
-    public tasksList(
-        page?: number,
-    ): CancelablePromise<PaginatedTaskListList> {
+    public tasksList(): CancelablePromise<Array<TaskList>> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/api/tasks/',
-            query: {
-                'page': page,
-            },
         });
     }
     /**
