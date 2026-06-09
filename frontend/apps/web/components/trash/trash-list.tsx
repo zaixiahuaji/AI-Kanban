@@ -18,7 +18,6 @@ interface TrashListProps {
 
 export function TrashList({ tasks, onRefresh }: TrashListProps) {
   const t = useTranslations('trash')
-  const tKanban = useTranslations('kanban')
 
   const handleRestore = async (id: string) => {
     const result = await restoreTask(id)
@@ -54,7 +53,7 @@ export function TrashList({ tasks, onRefresh }: TrashListProps) {
               <td className="px-4 py-3 text-sm text-gray-900">{task.title}</td>
               <td className="px-4 py-3">
                 <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                  {tKanban(task.status === 'in_progress' ? 'inProgress' : task.status as any)}
+                  {task.status}
                 </span>
               </td>
               <td className="px-4 py-3 text-sm text-gray-500">
