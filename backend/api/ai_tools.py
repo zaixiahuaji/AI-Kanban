@@ -213,6 +213,24 @@ TOOL_SCHEMAS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_tag",
+            "description": "创建一个新标签。如果同名标签已存在则返回错误。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "标签名称"},
+                    "color": {
+                        "type": "string",
+                        "description": "标签颜色，十六进制格式如 #FF0000，默认 #6B7280",
+                    },
+                },
+                "required": ["name"],
+            },
+        },
+    },
 ]
 
 # 工具安全级别映射
@@ -227,6 +245,7 @@ TOOL_SAFETY = {
     "batch_move_tasks": "confirm",
     "batch_delete_tasks": "confirm",
     "delete_column": "confirm",
+    "create_tag": "auto",
 }
 
 
@@ -480,6 +499,21 @@ def handle_delete_column(user, args):
     }
 
 
+def handle_create_tag(user, args):
+    """创建标签"""
+    name = args.get("name", "").strip()
+    if not name:
+        return False, {"error": "标签名称不能为空"}
+    color = args.get("color", "#6B7280").strip()
+    tag, created = Tag.objects.get_or_create(
+        name=name, created_by=user,
+        defaults={"color": color},
+    )
+    if not created:
+        return False, {"error": f"标签「{name}」已存在"}
+    return True, {"tag_id": str(tag.id), "name": tag.name, "color": tag.color}
+
+
 # Handler 分发表
 TOOL_HANDLERS = {
     "list_tasks": handle_list_tasks,
@@ -492,6 +526,7 @@ TOOL_HANDLERS = {
     "batch_move_tasks": handle_batch_move_tasks,
     "batch_delete_tasks": handle_batch_delete_tasks,
     "delete_column": handle_delete_column,
+    "create_tag": handle_create_tag,
 }
 
 
@@ -714,6 +749,18 @@ def undo_delete_column(user, result_data):
     }
 
 
+def undo_create_tag(user, tool_args):
+    """撤销创建标签：删除标签"""
+    tag_id = tool_args.get("tag_id")
+    if not tag_id:
+        return False, {"error": "无法撤销：缺少标签 ID"}
+    tag = Tag.objects.filter(id=tag_id, created_by=user).first()
+    if not tag:
+        return False, {"error": "标签不存在"}
+    tag.delete()
+    return True, {"undone": True, "tag_name": tag.name}
+
+
 UNDO_HANDLERS = {
     "create_task": undo_create_task,
     "move_task": undo_move_task,
@@ -722,6 +769,7 @@ UNDO_HANDLERS = {
     "batch_delete_tasks": undo_batch_delete_tasks,
     "batch_move_tasks": undo_batch_move_tasks,
     "delete_column": undo_delete_column,
+    "create_tag": undo_create_tag,
 }
 
 
