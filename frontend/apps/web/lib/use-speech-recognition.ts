@@ -41,6 +41,7 @@ export function useSpeechRecognition({
     const recognition = new SpeechRecognition()
     recognition.interimResults = true
     recognition.continuous = false
+    recognition.profanityFilter = false
     // 不设置 lang，跟随浏览器默认
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
