@@ -1051,7 +1051,7 @@ def build_system_prompt(user):
         ).count()
         column_summary += f"\n- {col.name} ({task_count}个任务)"
 
-    tag_names = ", ".join(t.name for t in tags[:20])  # 最多 20 个标签
+    tag_names = ", ".join(t.name for t in tags)
     total_tasks = Task.objects.active().filter(created_by=user).count()
 
     return f"""你是一个看板任务管理助手。
