@@ -266,6 +266,49 @@ TOOL_SCHEMAS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_tag_to_task",
+            "description": "给一个已有任务添加一个标签。标签不存在时会自动创建。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task_title": {
+                        "type": "string",
+                        "description": "任务标题（模糊匹配）",
+                    },
+                    "tag_name": {
+                        "type": "string",
+                        "description": "要添加的标签名称",
+                    },
+                },
+                "required": ["task_title", "tag_name"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_tags_to_task",
+            "description": "给一个已有任务添加多个标签。不存在的标签会自动创建。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task_title": {
+                        "type": "string",
+                        "description": "任务标题（模糊匹配）",
+                    },
+                    "tag_names": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "要添加的标签名称列表",
+                    },
+                },
+                "required": ["task_title", "tag_names"],
+            },
+        },
+    },
 ]
 
 # 工具安全级别映射
@@ -283,6 +326,8 @@ TOOL_SAFETY = {
     "create_tag": "auto",
     "delete_tag": "confirm",
     "batch_delete_tags": "confirm",
+    "add_tag_to_task": "auto",
+    "add_tags_to_task": "auto",
 }
 
 
@@ -581,6 +626,60 @@ def handle_batch_delete_tags(user, args):
     return True, {"found": found, "not_found": not_found}
 
 
+def handle_add_tag_to_task(user, args):
+    """给任务添加一个标签"""
+    task, err = _resolve_task(user, args.get("task_title", ""))
+    if err:
+        return False, {"error": err}
+    tag_name = args.get("tag_name", "").strip()
+    if not tag_name:
+        return False, {"error": "标签名称不能为空"}
+    tag, _ = Tag.objects.get_or_create(
+        name=tag_name, created_by=user,
+        defaults={"color": "#6B7280"},
+    )
+    if task.tags.filter(id=tag.id).exists():
+        return False, {"error": f"任务已有标签「{tag_name}」"}
+    task.tags.add(tag)
+    return True, {
+        "task_title": task.title,
+        "tag_name": tag.name,
+        "task_id": str(task.id),
+        "tag_id": str(tag.id),
+    }
+
+
+def handle_add_tags_to_task(user, args):
+    """给任务添加多个标签"""
+    task, err = _resolve_task(user, args.get("task_title", ""))
+    if err:
+        return False, {"error": err}
+    tag_names = args.get("tag_names", [])
+    if not tag_names:
+        return False, {"error": "标签列表不能为空"}
+    added = []
+    skipped = []
+    for name in tag_names:
+        name = name.strip()
+        if not name:
+            continue
+        tag, _ = Tag.objects.get_or_create(
+            name=name, created_by=user,
+            defaults={"color": "#6B7280"},
+        )
+        if task.tags.filter(id=tag.id).exists():
+            skipped.append(name)
+        else:
+            task.tags.add(tag)
+            added.append(name)
+    return True, {
+        "task_title": task.title,
+        "added": added,
+        "skipped": skipped,
+        "task_id": str(task.id),
+    }
+
+
 # Handler 分发表
 TOOL_HANDLERS = {
     "list_tasks": handle_list_tasks,
@@ -596,6 +695,8 @@ TOOL_HANDLERS = {
     "create_tag": handle_create_tag,
     "delete_tag": handle_delete_tag,
     "batch_delete_tags": handle_batch_delete_tags,
+    "add_tag_to_task": handle_add_tag_to_task,
+    "add_tags_to_task": handle_add_tags_to_task,
 }
 
 
@@ -883,6 +984,40 @@ def undo_batch_delete_tags(user, result_data):
     return True, {"undone": True, "restored": restored}
 
 
+def undo_add_tag_to_task(user, tool_args):
+    """撤销添加标签：从任务上移除标签"""
+    task_id = tool_args.get("task_id")
+    tag_id = tool_args.get("tag_id")
+    if not task_id or not tag_id:
+        return False, {"error": "无法撤销：缺少任务或标签 ID"}
+    task = Task.objects.filter(id=task_id, created_by=user).first()
+    if not task:
+        return False, {"error": "任务不存在"}
+    tag = Tag.objects.filter(id=tag_id, created_by=user).first()
+    if not tag:
+        return False, {"error": "标签不存在"}
+    task.tags.remove(tag)
+    return True, {"undone": True, "task_title": task.title, "removed_tag": tag.name}
+
+
+def undo_add_tags_to_task(user, tool_args):
+    """撤销批量添加标签：从任务上移除所有已添加的标签"""
+    task_id = tool_args.get("task_id")
+    added = tool_args.get("added", [])
+    if not task_id or not added:
+        return False, {"error": "无法撤销：缺少任务 ID 或添加记录"}
+    task = Task.objects.filter(id=task_id, created_by=user).first()
+    if not task:
+        return False, {"error": "任务不存在"}
+    removed = []
+    for name in added:
+        tag = Tag.objects.filter(name=name, created_by=user).first()
+        if tag:
+            task.tags.remove(tag)
+            removed.append(name)
+    return True, {"undone": True, "task_title": task.title, "removed_tags": removed}
+
+
 UNDO_HANDLERS = {
     "create_task": undo_create_task,
     "move_task": undo_move_task,
@@ -894,6 +1029,8 @@ UNDO_HANDLERS = {
     "create_tag": undo_create_tag,
     "delete_tag": undo_delete_tag,
     "batch_delete_tags": undo_batch_delete_tags,
+    "add_tag_to_task": undo_add_tag_to_task,
+    "add_tags_to_task": undo_add_tags_to_task,
 }
 
 
