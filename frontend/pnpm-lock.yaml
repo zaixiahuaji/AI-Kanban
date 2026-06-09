@@ -112,6 +112,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^3.9.1
         version: 3.9.1(react-hook-form@7.54.2(react@19.2.3))
+      lucide-react:
+        specifier: ^0.469.0
+        version: 0.469.0(react@19.2.3)
       next:
         specifier: ^16.0.10
         version: 16.0.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
