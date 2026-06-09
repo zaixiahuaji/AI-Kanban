@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Mic } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
@@ -29,10 +29,15 @@ export function AIInput({ onSend, disabled, remaining }: AIInputProps) {
     }
   }, [])
 
-  const { isListening, isSupported, toggle } = useSpeechRecognition({
+  const { isListening, isSupported, toggle, stop } = useSpeechRecognition({
     onInterimResult: handleInterimResult,
     onFinalResult: handleFinalResult,
   })
+
+  // 当 disabled 变为 true（流式传输开始）时，自动停止录音
+  useEffect(() => {
+    if (disabled && isListening) stop()
+  }, [disabled, isListening, stop])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -42,6 +47,7 @@ export function AIInput({ onSend, disabled, remaining }: AIInputProps) {
     if (!value || disabled) return
     onSend(value)
     input.value = ''
+    if (isListening) stop()
   }
 
   return (
