@@ -2,13 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type PatchedUserCurrent = {
+export type PatchedAdminUserUpdate = {
     /**
-     * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+     * Designates whether this user should be treated as active. Unselect this instead of deleting accounts.
      */
-    username?: string;
-    first_name?: string;
-    last_name?: string;
+    is_active?: boolean;
     /**
      * Designates whether the user can log into this admin site.
      */

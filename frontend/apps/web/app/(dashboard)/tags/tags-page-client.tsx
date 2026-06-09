@@ -19,7 +19,7 @@ export function TagsPageClient({ initialTags }: { initialTags: Tag[] }) {
 
   const refresh = async () => {
     const result = await getTags()
-    if (result.success) setTags(result.data?.results || [])
+    if (result.success) setTags(result.data || [])
   }
 
   return (

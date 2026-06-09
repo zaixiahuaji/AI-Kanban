@@ -2,11 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Tag } from './Tag';
-export type PaginatedTagList = {
+import type { AdminTaskList } from './AdminTaskList';
+export type PaginatedAdminTaskListList = {
     count: number;
     next?: string | null;
     previous?: string | null;
-    results: Array<Tag>;
+    results: Array<AdminTaskList>;
 };
 

@@ -2,7 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { PaginatedTagList } from '../models/PaginatedTagList';
 import type { PatchedTag } from '../models/PatchedTag';
 import type { Tag } from '../models/Tag';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -10,19 +9,13 @@ import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 export class TagsService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
-     * @param page A page number within the paginated result set.
-     * @returns PaginatedTagList
+     * @returns Tag
      * @throws ApiError
      */
-    public tagsList(
-        page?: number,
-    ): CancelablePromise<PaginatedTagList> {
+    public tagsList(): CancelablePromise<Array<Tag>> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/api/tags/',
-            query: {
-                'page': page,
-            },
         });
     }
     /**
