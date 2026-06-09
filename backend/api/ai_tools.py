@@ -309,6 +309,124 @@ TOOL_SCHEMAS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_tags",
+            "description": "查看当前所有标签。",
+            "parameters": {"type": "object", "properties": {}, "required": []},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_tag",
+            "description": "编辑已有标签的名称或颜色。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_name": {
+                        "type": "string",
+                        "description": "当前标签名称",
+                    },
+                    "new_name": {
+                        "type": "string",
+                        "description": "新标签名称，不修改则不传",
+                    },
+                    "new_color": {
+                        "type": "string",
+                        "description": "新颜色（十六进制如 #FF0000），不修改则不传",
+                    },
+                },
+                "required": ["tag_name"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_task_title",
+            "description": "编辑已有任务的标题。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task_title": {
+                        "type": "string",
+                        "description": "当前任务标题（模糊匹配）",
+                    },
+                    "new_title": {
+                        "type": "string",
+                        "description": "新标题",
+                    },
+                },
+                "required": ["task_title", "new_title"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_task_description",
+            "description": "编辑已有任务的描述。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task_title": {
+                        "type": "string",
+                        "description": "任务标题（模糊匹配）",
+                    },
+                    "new_description": {
+                        "type": "string",
+                        "description": "新的描述内容",
+                    },
+                },
+                "required": ["task_title", "new_description"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_task_priority",
+            "description": "调整已有任务的优先级。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task_title": {
+                        "type": "string",
+                        "description": "任务标题（模糊匹配）",
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": ["high", "medium", "low"],
+                        "description": "新优先级",
+                    },
+                },
+                "required": ["task_title", "priority"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_column_name",
+            "description": "编辑已有看板列的名称。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "column_name": {
+                        "type": "string",
+                        "description": "当前列名称",
+                    },
+                    "new_name": {
+                        "type": "string",
+                        "description": "新列名称",
+                    },
+                },
+                "required": ["column_name", "new_name"],
+            },
+        },
+    },
 ]
 
 # 工具安全级别映射
@@ -328,6 +446,12 @@ TOOL_SAFETY = {
     "batch_delete_tags": "confirm",
     "add_tag_to_task": "auto",
     "add_tags_to_task": "auto",
+    "list_tags": "safe",
+    "edit_tag": "auto",
+    "edit_task_title": "auto",
+    "edit_task_description": "auto",
+    "edit_task_priority": "auto",
+    "edit_column_name": "auto",
 }
 
 
@@ -680,6 +804,128 @@ def handle_add_tags_to_task(user, args):
     }
 
 
+def handle_list_tags(user, args):
+    """查看所有标签"""
+    tags = Tag.objects.filter(created_by=user)
+    result = [{"name": t.name, "color": t.color, "id": str(t.id)} for t in tags]
+    return True, {"tags": result, "count": len(result)}
+
+
+def handle_edit_tag(user, args):
+    """编辑标签名称或颜色"""
+    name = args.get("tag_name", "")
+    tag = Tag.objects.filter(created_by=user, name__icontains=name).first()
+    if not tag:
+        return False, {"error": f"未找到标签「{name}」"}
+    old_name = tag.name
+    old_color = tag.color
+    new_name = args.get("new_name", "").strip()
+    new_color = args.get("new_color", "").strip()
+    if new_name:
+        tag.name = new_name
+    if new_color:
+        tag.color = new_color
+    if new_name or new_color:
+        tag.save()
+    return True, {
+        "tag_id": str(tag.id),
+        "old_name": old_name,
+        "new_name": tag.name,
+        "old_color": old_color,
+        "new_color": tag.color,
+    }
+
+
+def handle_edit_task_title(user, args):
+    """编辑任务标题"""
+    task, err = _resolve_task(user, args.get("task_title", ""))
+    if err:
+        return False, {"error": err}
+    new_title = args.get("new_title", "").strip()
+    if not new_title:
+        return False, {"error": "新标题不能为空"}
+    old_title = task.title
+    task.title = new_title
+    task.save(update_fields=["title", "modified_at"])
+    return True, {
+        "task_id": str(task.id),
+        "old_title": old_title,
+        "new_title": new_title,
+    }
+
+
+def handle_edit_task_description(user, args):
+    """编辑任务描述"""
+    task, err = _resolve_task(user, args.get("task_title", ""))
+    if err:
+        return False, {"error": err}
+    new_desc = args.get("new_description", "")
+    old_desc = task.description or ""
+    task.description = new_desc
+    task.save(update_fields=["description", "modified_at"])
+    return True, {
+        "task_id": str(task.id),
+        "old_description": old_desc,
+        "new_description": new_desc,
+        "task_title": task.title,
+    }
+
+
+def handle_edit_task_priority(user, args):
+    """调整任务优先级"""
+    task, err = _resolve_task(user, args.get("task_title", ""))
+    if err:
+        return False, {"error": err}
+    new_priority = args.get("priority", "").strip()
+    if new_priority not in ("high", "medium", "low"):
+        return False, {"error": "优先级必须是 high、medium 或 low"}
+    old_priority = task.priority
+    task.priority = new_priority
+    task.save(update_fields=["priority", "modified_at"])
+    return True, {
+        "task_id": str(task.id),
+        "task_title": task.title,
+        "old_priority": old_priority,
+        "new_priority": new_priority,
+    }
+
+
+def handle_edit_column_name(user, args):
+    """编辑列名"""
+    name = args.get("column_name", "")
+    col, err = _resolve_column(user, name)
+    if err:
+        return False, {"error": err}
+    new_name = args.get("new_name", "").strip()
+    if not new_name:
+        return False, {"error": "新列名不能为空"}
+    old_name = col.name
+    old_slug = col.slug
+    col.name = new_name
+    # 更新 slug
+    from django.utils.text import slugify
+    base_slug = slugify(new_name)
+    if not base_slug:
+        base_slug = "column"
+    new_slug = base_slug
+    counter = 1
+    while BoardColumn.objects.filter(created_by=user, slug=new_slug).exclude(id=col.id).exists():
+        new_slug = f"{base_slug}-{counter}"
+        counter += 1
+    col.slug = new_slug
+    col.save()
+    # 同步更新该列下所有任务的 status 字段
+    if old_slug != new_slug:
+        Task.objects.filter(created_by=user, status=old_slug).update(status=new_slug)
+    return True, {
+        "column_id": str(col.id),
+        "old_name": old_name,
+        "new_name": new_name,
+        "old_slug": old_slug,
+        "new_slug": new_slug,
+    }
+
+
 # Handler 分发表
 TOOL_HANDLERS = {
     "list_tasks": handle_list_tasks,
@@ -697,6 +943,12 @@ TOOL_HANDLERS = {
     "batch_delete_tags": handle_batch_delete_tags,
     "add_tag_to_task": handle_add_tag_to_task,
     "add_tags_to_task": handle_add_tags_to_task,
+    "list_tags": handle_list_tags,
+    "edit_tag": handle_edit_tag,
+    "edit_task_title": handle_edit_task_title,
+    "edit_task_description": handle_edit_task_description,
+    "edit_task_priority": handle_edit_task_priority,
+    "edit_column_name": handle_edit_column_name,
 }
 
 
@@ -1018,6 +1270,81 @@ def undo_add_tags_to_task(user, tool_args):
     return True, {"undone": True, "task_title": task.title, "removed_tags": removed}
 
 
+def undo_edit_tag(user, tool_args):
+    """撤销编辑标签：恢复原名称和颜色"""
+    tag_id = tool_args.get("tag_id")
+    if not tag_id:
+        return False, {"error": "无法撤销：缺少标签 ID"}
+    tag = Tag.objects.filter(id=tag_id, created_by=user).first()
+    if not tag:
+        return False, {"error": "标签不存在"}
+    tag.name = tool_args.get("old_name", tag.name)
+    tag.color = tool_args.get("old_color", tag.color)
+    tag.save()
+    return True, {"undone": True, "tag_name": tag.name}
+
+
+def undo_edit_task_title(user, tool_args):
+    """撤销编辑标题：恢复原标题"""
+    task_id = tool_args.get("task_id")
+    if not task_id:
+        return False, {"error": "无法撤销：缺少任务 ID"}
+    task = Task.objects.filter(id=task_id, created_by=user).first()
+    if not task:
+        return False, {"error": "任务不存在"}
+    task.title = tool_args.get("old_title", task.title)
+    task.save(update_fields=["title", "modified_at"])
+    return True, {"undone": True, "task_title": task.title}
+
+
+def undo_edit_task_description(user, tool_args):
+    """撤销编辑描述：恢复原描述"""
+    task_id = tool_args.get("task_id")
+    if not task_id:
+        return False, {"error": "无法撤销：缺少任务 ID"}
+    task = Task.objects.filter(id=task_id, created_by=user).first()
+    if not task:
+        return False, {"error": "任务不存在"}
+    task.description = tool_args.get("old_description", "")
+    task.save(update_fields=["description", "modified_at"])
+    return True, {"undone": True, "task_title": task.title}
+
+
+def undo_edit_task_priority(user, tool_args):
+    """撤销调整优先级：恢复原优先级"""
+    task_id = tool_args.get("task_id")
+    if not task_id:
+        return False, {"error": "无法撤销：缺少任务 ID"}
+    task = Task.objects.filter(id=task_id, created_by=user).first()
+    if not task:
+        return False, {"error": "任务不存在"}
+    task.priority = tool_args.get("old_priority", "medium")
+    task.save(update_fields=["priority", "modified_at"])
+    return True, {"undone": True, "task_title": task.title, "restored_priority": task.priority}
+
+
+def undo_edit_column_name(user, result_data):
+    """撤销编辑列名：恢复原名和 slug，同步更新任务状态"""
+    col_id = result_data.get("column_id")
+    if not col_id:
+        return False, {"error": "无法撤销：缺少列 ID"}
+    col = BoardColumn.objects.filter(id=col_id, created_by=user).first()
+    if not col:
+        return False, {"error": "列不存在"}
+    old_name = result_data.get("old_name")
+    old_slug = result_data.get("old_slug")
+    new_slug = result_data.get("new_slug")
+    if not old_name or not old_slug:
+        return False, {"error": "无法撤销：缺少原始列信息"}
+    # 先把当前 slug 下的任务移回旧 slug
+    if new_slug and old_slug != new_slug:
+        Task.objects.filter(created_by=user, status=new_slug).update(status=old_slug)
+    col.name = old_name
+    col.slug = old_slug
+    col.save()
+    return True, {"undone": True, "column_name": col.name}
+
+
 UNDO_HANDLERS = {
     "create_task": undo_create_task,
     "move_task": undo_move_task,
@@ -1031,6 +1358,11 @@ UNDO_HANDLERS = {
     "batch_delete_tags": undo_batch_delete_tags,
     "add_tag_to_task": undo_add_tag_to_task,
     "add_tags_to_task": undo_add_tags_to_task,
+    "edit_tag": undo_edit_tag,
+    "edit_task_title": undo_edit_task_title,
+    "edit_task_description": undo_edit_task_description,
+    "edit_task_priority": undo_edit_task_priority,
+    "edit_column_name": undo_edit_column_name,
 }
 
 
@@ -1086,13 +1418,21 @@ def build_system_prompt(user):
 - 创建列 → create_column
 - 调整列顺序 → reorder_columns
 - 删除列 → delete_column
+- 编辑列名 → edit_column_name
 
 ### 标签操作
+- 查看所有标签 → list_tags
 - 创建标签 → create_tag
+- 编辑标签 → edit_tag
 - 删除标签 → delete_tag
 - 批量删除标签 → batch_delete_tags
 - 给任务添加标签 → add_tag_to_task
-- 给任务添加多个标签 → add_tags_to_task"""
+- 给任务添加多个标签 → add_tags_to_task
+
+### 任务编辑
+- 编辑任务标题 → edit_task_title
+- 编辑任务描述 → edit_task_description
+- 调整任务优先级 → edit_task_priority"""
 
 
 ######################################################################
