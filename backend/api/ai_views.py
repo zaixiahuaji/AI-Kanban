@@ -138,8 +138,8 @@ class AIChatView(APIView):
     def _stream_chat(self, user, content, user_msg):
         """生成 SSE 事件流。"""
         client = OpenAI(
-            api_key=settings.DEEPSEEK_API_KEY,
-            base_url=settings.DEEPSEEK_BASE_URL,
+            api_key=settings.AI_API_KEY,
+            base_url=settings.AI_BASE_URL,
         )
         messages = _build_messages(user, content)
 
@@ -150,7 +150,7 @@ class AIChatView(APIView):
             for iteration in range(settings.AI_TOOL_MAX_ITERATIONS):
                 has_tool_call = False
                 stream = client.chat.completions.create(
-                    model=settings.DEEPSEEK_MODEL,
+                    model=settings.AI_MODEL,
                     messages=messages,
                     tools=TOOL_SCHEMAS,
                     stream=True,

@@ -185,9 +185,9 @@ DEFAULT_FROM_EMAIL = environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 ######################################################################
 # AI Assistant
 ######################################################################
-DEEPSEEK_API_KEY = environ.get("DEEPSEEK_API_KEY", "")
-DEEPSEEK_BASE_URL = environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-DEEPSEEK_MODEL = environ.get("DEEPSEEK_MODEL", "deepseek-chat")
+AI_API_KEY = environ.get("AI_API_KEY", "")
+AI_BASE_URL = environ.get("AI_BASE_URL", "")
+AI_MODEL = environ.get("AI_MODEL", "")
 AI_DAILY_LIMIT = int(environ.get("AI_DAILY_LIMIT", "50"))
 AI_DAILY_LIMIT_ENABLED = environ.get("AI_DAILY_LIMIT_ENABLED", "false").lower() == "true"
 AI_CHAT_HISTORY_LIMIT = 20
