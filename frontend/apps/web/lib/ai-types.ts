@@ -48,6 +48,7 @@ export interface ChatMessage {
 
 // 额度
 export interface DailyUsage {
+  enabled: boolean
   used: number
   limit: number
   remaining: number

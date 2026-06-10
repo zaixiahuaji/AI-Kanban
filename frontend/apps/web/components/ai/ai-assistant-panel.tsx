@@ -15,7 +15,7 @@ export function AIAssistantPanel() {
   const t = useTranslations('ai')
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [streamingText, setStreamingText] = useState('')
-  const [usage, setUsage] = useState<DailyUsage>({ used: 0, limit: 50, remaining: 50 })
+  const [usage, setUsage] = useState<DailyUsage>({ enabled: false, used: 0, limit: 50, remaining: 50 })
   const [isStreaming, setIsStreaming] = useState(false)
   const idCounter = useRef(0)
   const nextId = (prefix: string) => `${prefix}-${++idCounter.current}`
@@ -219,6 +219,7 @@ export function AIAssistantPanel() {
           onSend={handleSend}
           disabled={isStreaming}
           remaining={usage.remaining}
+          limitEnabled={usage.enabled}
         />
       </div>
     </div>

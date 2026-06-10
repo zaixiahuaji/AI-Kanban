@@ -38,6 +38,8 @@ def _get_or_create_daily_usage(user):
 def _check_rate_limit(user):
     """检查每日额度，返回 (allowed, usage_obj)。"""
     usage = _get_or_create_daily_usage(user)
+    if not settings.AI_DAILY_LIMIT_ENABLED:
+        return True, usage
     return usage.count < settings.AI_DAILY_LIMIT, usage
 
 
@@ -115,8 +117,9 @@ class AIChatView(APIView):
         )
 
         # 增加额度计数
-        usage.count += 1
-        usage.save(update_fields=["count"])
+        if settings.AI_DAILY_LIMIT_ENABLED:
+            usage.count += 1
+            usage.save(update_fields=["count"])
 
         # 清理历史（保留最近 200 条）
         self._cleanup_history(request.user)
@@ -453,6 +456,7 @@ class AIUsageView(APIView):
         usage = _get_or_create_daily_usage(request.user)
         return Response(
             {
+                "enabled": settings.AI_DAILY_LIMIT_ENABLED,
                 "used": usage.count,
                 "limit": settings.AI_DAILY_LIMIT,
                 "remaining": max(0, settings.AI_DAILY_LIMIT - usage.count),

@@ -189,6 +189,7 @@ DEEPSEEK_API_KEY = environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_BASE_URL = environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 DEEPSEEK_MODEL = environ.get("DEEPSEEK_MODEL", "deepseek-chat")
 AI_DAILY_LIMIT = int(environ.get("AI_DAILY_LIMIT", "50"))
+AI_DAILY_LIMIT_ENABLED = environ.get("AI_DAILY_LIMIT_ENABLED", "false").lower() == "true"
 AI_CHAT_HISTORY_LIMIT = 20
 AI_TOOL_MAX_ITERATIONS = 5
 AI_TOOL_TIMEOUT = 30  # seconds

@@ -32,6 +32,7 @@ class ChatRequestSerializer(serializers.Serializer):
 class DailyUsageSerializer(serializers.Serializer):
     """每日额度"""
 
+    enabled = serializers.BooleanField()
     used = serializers.IntegerField()
     limit = serializers.IntegerField()
     remaining = serializers.IntegerField()

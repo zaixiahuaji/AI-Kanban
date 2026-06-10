@@ -10,9 +10,10 @@ interface AIInputProps {
   onSend: (content: string) => void
   disabled: boolean
   remaining: number
+  limitEnabled: boolean
 }
 
-export function AIInput({ onSend, disabled, remaining }: AIInputProps) {
+export function AIInput({ onSend, disabled, remaining, limitEnabled }: AIInputProps) {
   const t = useTranslations('ai')
   const inputRef = useRef<HTMLInputElement>(null)
   // 录音开始时的光标位置，用于在光标处插入文字
@@ -111,9 +112,11 @@ export function AIInput({ onSend, disabled, remaining }: AIInputProps) {
           {t('send')}
         </button>
       </form>
-      <div className="px-3 pb-2 text-center text-[10px] text-gray-400">
-        {t('remaining', { count: remaining })}
-      </div>
+      {limitEnabled && (
+        <div className="px-3 pb-2 text-center text-[10px] text-gray-400">
+          {t('remaining', { count: remaining })}
+        </div>
+      )}
     </div>
   )
 }
