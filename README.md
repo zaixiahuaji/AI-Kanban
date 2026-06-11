@@ -123,7 +123,7 @@ docker compose exec api uv run -- python manage.py createsuperuser
 | **拖拽** | @dnd-kit |
 | **图表** | Recharts |
 | **国际化** | next-intl |
-| **包管理** | Turborepo + pnpm workspace |
+| **包管理** | pnpm workspace |
 | **数据库** | PostgreSQL |
 | **容器化** | Docker Compose |
 | **代码规范** | Ruff（Python）+ Biome（JS/TS）|
