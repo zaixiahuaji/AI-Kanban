@@ -13,8 +13,8 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/<your-username>/superkanban.git
-cd superkanban
+git clone https://github.com/zaixiahuaji/AI-Kanban.git
+cd AI-Kanban
 
 # 配置环境变量
 cp .env.backend.template .env.backend
