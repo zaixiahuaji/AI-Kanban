@@ -346,7 +346,15 @@ class AIActionConfirmView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        success, result = executor(request.user, action.tool_args)
+        # 部分执行器需要从 result（dispatch 阶段查出的 ID）取数据
+        _confirm_from_result = {
+            "delete_column", "delete_tag", "batch_delete_tags",
+        }
+        executor_args = (
+            action.result or {} if action.tool_name in _confirm_from_result
+            else action.tool_args
+        )
+        success, result = executor(request.user, executor_args)
         action.status = "confirmed" if success else "cancelled"
         action.result = result
         action.save(update_fields=["status", "result"])
