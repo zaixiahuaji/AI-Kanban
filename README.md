@@ -153,6 +153,50 @@ docker compose exec api uv run -- python manage.py createsuperuser
 └── CLAUDE.md                 # AI 辅助开发指南
 ```
 
+## 🚢 生产部署
+
+使用 `docker-compose.prod.yaml` 部署到服务器，与本地开发配置完全独立。
+
+### 配置
+
+```bash
+# 复制生产环境变量模板
+cp .env.backend.prod.template .env.backend.prod
+cp .env.frontend.prod.template .env.frontend.prod
+```
+
+编辑 `.env.backend.prod`：
+
+- `SECRET_KEY` — 设置固定密钥（`openssl rand -hex 32` 生成）
+- `ALLOWED_HOSTS` — 填入服务器公网 IP，如 `123.45.67.89,api`
+- 删除 `DEBUG=1`（留空即关闭调试模式）
+
+编辑 `.env.frontend.prod`：
+
+- `NEXTAUTH_URL` — 改为 `http://你的公网IP:3000/api/auth`
+- `NEXTAUTH_SECRET` — 设置随机密钥（`openssl rand -base64 32` 生成）
+- `NEXT_PUBLIC_API_URL` — 改为 `http://你的公网IP:8000`
+
+### 启动
+
+```bash
+docker compose -f docker-compose.prod.yaml up -d
+```
+
+启动后访问：
+
+- 前端：`http://你的公网IP:3000`
+- 管理后台：`http://你的公网IP:3001`
+- 后端 API：`http://你的公网IP:8000`
+
+### 创建管理员
+
+```bash
+docker compose -f docker-compose.prod.yaml exec api uv run -- python manage.py createsuperuser
+```
+
+> 生产环境使用 Gunicorn 作为 WSGI 服务器，前端使用 `next start` 生产模式运行，服务崩溃自动重启。
+
 ## 🔧 开发指南
 
 ### 常用命令

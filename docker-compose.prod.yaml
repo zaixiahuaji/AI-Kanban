@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:15-alpine
+    expose:
+      - "5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: "change-password"
+      POSTGRES_DB: "db"
+      POSTGRES_USER: "postgres"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: backend
+    command: bash -c "uv sync && uv run -- python manage.py migrate && uv run -- gunicorn api.wsgi:application --bind 0.0.0.0:8000 --workers 4"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env.backend.prod
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: frontend
+    command: sh -c "pnpm install -r && pnpm --filter web build && pnpm --filter web start"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.pnpm-store
+    env_file:
+      - .env.frontend.prod
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: frontend
+    command: sh -c "pnpm install -r && pnpm --filter admin build && pnpm --filter admin start"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.pnpm-store
+    env_file:
+      - .env.frontend.prod
+    environment:
+      - NEXTAUTH_URL=http://你的服务器公网IP:3001
+    depends_on:
+      - api
+    restart: unless-stopped

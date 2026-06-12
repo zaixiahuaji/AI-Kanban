@@ -11,6 +11,7 @@ dependencies = [
     "django-unfold>=0.43.0",
     "openai>=1.30",
     "django-cors-headers>=4.0",
+    "gunicorn>=22.0",
 ]
 
 [dependency-groups]

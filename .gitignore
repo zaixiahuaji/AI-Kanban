@@ -6,6 +6,8 @@ requirements.txt
 TODO.md
 .env.backend
 .env.frontend
+.env.backend.prod
+.env.frontend.prod
 data
 .pnp
 .pnp.js
