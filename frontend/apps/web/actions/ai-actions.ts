@@ -37,7 +37,9 @@ async function aiFetch(path: string, options: RequestInit = {}) {
 export async function getChatHistory(): Promise<
   { success: true; data: { messages: ChatMessage[] } } | { success: false; message: string }
 > {
-  return aiFetch('/api/ai/chat/history/') as Promise<typeof aiFetch>
+  return aiFetch('/api/ai/chat/history/') as Promise<
+    { success: true; data: { messages: ChatMessage[] } } | { success: false; message: string }
+  >
 }
 
 export async function confirmAction(actionId: string) {
@@ -55,7 +57,9 @@ export async function undoAction(actionId: string) {
 export async function getUsage(): Promise<
   { success: true; data: DailyUsage } | { success: false; message: string }
 > {
-  return aiFetch('/api/ai/usage/') as Promise<typeof aiFetch>
+  return aiFetch('/api/ai/usage/') as Promise<
+    { success: true; data: DailyUsage } | { success: false; message: string }
+  >
 }
 
 export async function clearChatHistory() {
