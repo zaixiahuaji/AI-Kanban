@@ -163,6 +163,7 @@ docker compose exec api uv run -- python manage.py createsuperuser
 # 复制生产环境变量模板
 cp .env.backend.prod.template .env.backend.prod
 cp .env.frontend.prod.template .env.frontend.prod
+cp .env.admin.prod.template .env.admin.prod
 ```
 
 编辑 `.env.backend.prod`：
@@ -176,6 +177,10 @@ cp .env.frontend.prod.template .env.frontend.prod
 - `NEXTAUTH_URL` — 改为 `http://你的公网IP:3000/api/auth`
 - `NEXTAUTH_SECRET` — 设置随机密钥（`openssl rand -base64 32` 生成）
 - `NEXT_PUBLIC_API_URL` — 改为 `http://你的公网IP:8000`
+
+编辑 `.env.admin.prod`（管理后台专用，覆盖上者的 NEXTAUTH_URL）：
+
+- `NEXTAUTH_URL` — 改为 `http://你的公网IP:3001/api/auth`
 
 ### 启动
 

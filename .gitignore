@@ -8,6 +8,7 @@ TODO.md
 .env.frontend
 .env.backend.prod
 .env.frontend.prod
+.env.admin.prod
 data
 .pnp
 .pnp.js
