@@ -46,7 +46,9 @@ docker compose up
 ```
 
 启动后访问：
+
 - 前端：http://localhost:3000
+- 管理后台：http://localhost:3001
 - 后端 API：http://localhost:8000
 - Swagger 文档：http://localhost:8000/api/schema/swagger-ui/
 
@@ -76,6 +78,7 @@ docker compose exec api uv run -- python manage.py createsuperuser
 - **操作可撤销** — 所有操作支持一键撤回，包括批量删除、列重命名等
 - **流式响应** — 基于 SSE 的实时流式输出，逐字显示
 - **语音输入** — 集成 Web Speech API，说话即可下达指令
+  > ⚠️ 受浏览器安全策略限制，语音输入仅在 **HTTPS** 或 **localhost** 下可用。通过公网 IP 以 HTTP 访问时，浏览器会拒绝麦克风权限（`not-allowed`），该功能不可用。
 - **可配额限制** — 内置每日调用次数限制，默认关闭，可按需开启
 
 ### 标签系统
@@ -118,6 +121,7 @@ docker compose exec api uv run -- python manage.py createsuperuser
 | **管理后台** | Django Unfold |
 | **AI 引擎** | 兼容 OpenAI API 的 LLM 服务 |
 | **前端框架** | Next.js 16（App Router）|
+| **前端语言** | TypeScript |
 | **UI 组件** | Tailwind CSS + shadcn/ui |
 | **表单** | react-hook-form + zod |
 | **拖拽** | @dnd-kit |
@@ -141,16 +145,19 @@ docker compose exec api uv run -- python manage.py createsuperuser
 │       └── tests/            # pytest 测试
 ├── frontend/                 # pnpm workspace
 │   ├── apps/
-│   │   └── web/              # Next.js 应用
-│   │       ├── app/          # App Router 页面
-│   │       ├── components/   # 组件（kanban, ai, tags, trash, statistics, forms）
-│   │       ├── actions/      # Server Actions
-│   │       └── lib/          # 工具函数（auth, api, ai-sse, kanban-utils）
+│   │   ├── web/              # 主应用（端口 3000）
+│   │   │   ├── app/          # App Router 页面
+│   │   │   ├── components/   # 组件（kanban, ai, tags, trash, statistics, forms）
+│   │   │   ├── actions/      # Server Actions
+│   │   │   └── lib/          # 工具函数（auth, api, ai-sse, kanban-utils）
+│   │   └── admin/            # 管理后台应用（端口 3001，仪表盘 / 用户 / 任务管理）
 │   └── packages/
 │       ├── types/            # 自动生成的 API 客户端（不可手动编辑）
 │       └── ui/               # 共享 UI 组件（表单、图表、样式、国际化）
-├── docker-compose.yaml
-└── CLAUDE.md                 # AI 辅助开发指南
+├── docker-compose.yaml                          # 本地开发
+├── docker-compose.prod.yaml                     # 生产部署
+├── .env.backend.template / .env.frontend.template        # 本地环境变量模板
+└── .env.{backend,frontend,admin}.prod.template  # 生产环境变量模板
 ```
 
 ## 🚢 生产部署
@@ -174,18 +181,18 @@ cp .env.admin.prod.template .env.admin.prod
 
 编辑 `.env.frontend.prod`：
 
-- `NEXTAUTH_URL` — 改为 `http://你的公网IP:3000/api/auth`
+- `NEXTAUTH_URL` — 改为 `http://你的公网IP:3000/api/auth`（**端口 `:3000` 不能漏**，否则登录后跳转会丢失端口）
 - `NEXTAUTH_SECRET` — 设置随机密钥（`openssl rand -base64 32` 生成）
 - `NEXT_PUBLIC_API_URL` — 改为 `http://你的公网IP:8000`
 
 编辑 `.env.admin.prod`（管理后台专用，覆盖上者的 NEXTAUTH_URL）：
 
-- `NEXTAUTH_URL` — 改为 `http://你的公网IP:3001/api/auth`
+- `NEXTAUTH_URL` — 改为 `http://你的公网IP:3001/api/auth`（同样**端口 `:3001` 不能漏**）
 
 ### 启动
 
 ```bash
-docker compose -f docker-compose.prod.yaml up -d
+docker compose -f docker-compose.prod.yaml up -d --build
 ```
 
 启动后访问：
@@ -193,6 +200,17 @@ docker compose -f docker-compose.prod.yaml up -d
 - 前端：`http://你的公网IP:3000`
 - 管理后台：`http://你的公网IP:3001`
 - 后端 API：`http://你的公网IP:8000`
+
+### 更新部署
+
+代码更新后需重建容器才能让新代码生效——本项目源码通过 volume 挂载、镜像不含源码，仅 `up` 不会重启容器，必须加 `--build`（它会触发容器重建并重新构建前端）：
+
+```bash
+git pull
+docker compose -f docker-compose.prod.yaml up -d --build
+```
+
+> 若曾在服务器上手动改过 `docker-compose.prod.yaml`，`git pull` 可能冲突，先执行 `git checkout docker-compose.prod.yaml` 丢弃本地改动再 pull。
 
 ### 创建管理员
 
@@ -216,6 +234,20 @@ docker compose exec api uv add <package>                            # 添加 Pyt
 # 前端
 docker compose exec web pnpm --filter web add <package>             # 添加前端依赖
 docker compose exec web pnpm openapi:generate                       # 重新生成 API 类型
+```
+
+### 本地构建验证
+
+`next dev` 不做类型检查，提交前可用以下命令提前发现类型错误（避免部署时才踩坑）：
+
+```bash
+# 1. 类型检查（快速，一次性列出所有错误）
+docker compose exec web pnpm --filter web exec tsc --noEmit
+
+# 2. 完整生产构建（与服务器一致，含路由类型校验）
+docker compose stop web admin                              # 停掉 dev，避免抢占 .next 目录
+docker compose run --rm web pnpm --filter web build        # 一次性构建
+docker compose up -d web admin                             # 恢复 dev
 ```
 
 ### 本地开发（不用 Docker）
