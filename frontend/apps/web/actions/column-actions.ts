@@ -25,7 +25,7 @@ export async function createColumn(name: string) {
 
   try {
     const apiClient = await getApiClient(session)
-    const response = await apiClient.columns.columnsCreate({ name })
+    const response = await apiClient.columns.columnsCreate({ name } as any)
     return { success: true, data: response }
   } catch (error) {
     if (error instanceof ApiError) {

@@ -30,10 +30,11 @@ export function KanbanPageClient({ initialTasks, tags, columns }: KanbanPageClie
       getColumns(),
     ])
     if (taskResult.success) {
-      setTasks(taskResult.data || [])
+      // 生成类型 TaskList 字段可选，手写 Task 必填，运行时一致，断言对齐
+      setTasks((taskResult.data || []) as unknown as Task[])
     }
     if (colResult.success && colResult.data) {
-      setColumnList(colResult.data)
+      setColumnList(colResult.data as unknown as Column[])
     }
   }
 
@@ -83,7 +84,7 @@ export function KanbanPageClient({ initialTasks, tags, columns }: KanbanPageClie
 
       {modalTask !== undefined && (
         <TaskModal
-          task={modalTask}
+          task={modalTask as any}
           tags={tags}
           columns={columnList}
           onClose={() => setModalTask(undefined)}

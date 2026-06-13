@@ -28,7 +28,7 @@ export async function createTag(data: { name: string; color: string }) {
     const response = await apiClient.tags.tagsCreate({
       name: data.name,
       color: data.color,
-    })
+    } as any)
     return { success: true, data: response }
   } catch (error) {
     if (error instanceof ApiError) {

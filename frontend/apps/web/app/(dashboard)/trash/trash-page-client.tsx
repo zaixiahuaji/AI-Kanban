@@ -19,7 +19,7 @@ export function TrashPageClient({ initialTasks }: { initialTasks: Task[] }) {
 
   const refresh = async () => {
     const result = await getTrashTasks()
-    if (result.success) setTasks(result.data || [])
+    if (result.success) setTasks((result.data || []) as unknown as Task[])
   }
 
   return (

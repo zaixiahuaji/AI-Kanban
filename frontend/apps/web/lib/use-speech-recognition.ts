@@ -31,7 +31,7 @@ export function useSpeechRecognition({
   const [isListening, setIsListening] = useState(false)
   const isSupported = !!SpeechRecognition
 
-  const recognitionRef = useRef<InstanceType<typeof SpeechRecognition> | null>(null)
+  const recognitionRef = useRef<ISpeechRecognition | null>(null)
   // 跟踪用户是否主动停止，用于区分意外结束
   const intentionalStopRef = useRef(false)
 
